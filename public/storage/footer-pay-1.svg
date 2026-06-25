@@ -1,0 +1,18 @@
+<svg width="240" height="35" viewBox="0 0 240 35" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Visa -->
+  <rect x="0" y="2" width="50" height="31" rx="4" fill="#1A1F71"/>
+  <text x="25" y="22" font-family="Arial, sans-serif" font-weight="bold" font-size="14" fill="#FFFFFF" text-anchor="middle">VISA</text>
+  
+  <!-- Mastercard -->
+  <rect x="60" y="2" width="50" height="31" rx="4" fill="#222222"/>
+  <circle cx="80" cy="17" r="9" fill="#EB001B" opacity="0.9"/>
+  <circle cx="90" cy="17" r="9" fill="#F79E1B" opacity="0.9"/>
+  
+  <!-- PayPal -->
+  <rect x="120" y="2" width="50" height="31" rx="4" fill="#003087"/>
+  <text x="145" y="21" font-family="Arial, sans-serif" font-style="italic" font-weight="bold" font-size="12" fill="#009CDE" text-anchor="middle">Pay<tspan fill="#FFFFFF">Pal</tspan></text>
+  
+  <!-- Apple Pay -->
+  <rect x="180" y="2" width="50" height="31" rx="4" fill="#000000"/>
+  <text x="205" y="21" font-family="Arial, sans-serif" font-weight="bold" font-size="12" fill="#FFFFFF" text-anchor="middle"> Pay</text>
+</svg>

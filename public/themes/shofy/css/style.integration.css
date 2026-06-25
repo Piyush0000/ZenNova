@@ -1,0 +1,413 @@
+/* ==========================
+   GLOBAL
+========================== */
+
+body,
+.grey-bg-2,
+.grey-bg-7,
+.tp-product-area,
+.tp-blog-area,
+.tp-testimonial-area,
+.tp-category-area {
+    background: #050505 !important;
+    color: #ffffff !important;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+    color: #ffffff !important;
+}
+
+p,
+span,
+li {
+    color: #cfcfcf !important;
+}
+
+a {
+    color: #ffffff;
+}
+
+a:hover {
+    color: #ff6b00 !important;
+}
+
+/* ==========================
+   HEADER
+========================== */
+
+.tp-header-area,
+.tp-header-main {
+    border-bottom: 1px solid #1f1f1f;
+}
+
+.tp-main-menu nav ul li a {
+    color: #ffffff !important;
+}
+
+.tp-main-menu nav ul li a:hover {
+    color: #ff6b00 !important;
+}
+
+.tp-header-action-btn {
+    color: #ffffff !important;
+}
+
+/* ==========================
+   HERO SLIDER
+========================== */
+
+.tp-slider-item {
+    background: #050505 !important;
+}
+
+.tp-slider-title {
+    color: #ffffff !important;
+}
+
+.tp-slider-subtitle {
+    color: #ff6b00 !important;
+}
+
+/* ==========================
+   BUTTONS
+========================== */
+
+.tp-btn,
+.tp-btn-2,
+button,
+.btn {}
+
+.tp-btn:hover,
+.tp-btn-2:hover,
+button:hover {
+    background: #ff812e !important;
+    border-color: #ff812e !important;
+}
+
+/* ==========================
+   PRODUCT CARDS
+========================== */
+
+.tp-product-item,
+.product-item,
+.tp-product-category-item {
+    background: #111111 !important;
+    border: 1px solid #252525 !important;
+    border-radius: 15px;
+    transition: .3s;
+}
+
+.tp-product-item:hover,
+.product-item:hover {
+    border-color: #ff6b00 !important;
+    box-shadow: 0 0 10px rgba(255, 107, 0, .25), 0 0 20px rgba(255, 107, 0, .15);
+}
+
+.tp-product-title a {
+    color: #ffffff !important;
+}
+
+.tp-product-price {
+    color: #ff6b00 !important;
+    font-weight: 700;
+}
+
+/* ==========================
+   CATEGORY CARDS
+========================== */
+
+.tp-product-category-item {
+    text-align: center;
+}
+
+.tp-product-category-thumb img {
+    border-radius: 50%;
+    border: 2px solid #ff6b00;
+}
+
+.tp-product-category-title {
+    color: #ffffff !important;
+}
+
+/* ==========================
+   BLOG CARDS
+========================== */
+
+.tp-blog-item {
+    background: #111111 !important;
+    border: 1px solid #252525 !important;
+}
+
+.tp-blog-title a {
+    color: #ffffff !important;
+}
+
+/* ==========================
+   TESTIMONIAL
+========================== */
+
+.tp-testimonial-item-3 {
+    background: #111111 !important;
+    border: 1px solid #252525 !important;
+}
+
+/* ==========================
+   NEWSLETTER
+========================== */
+
+.newsletter-area,
+.tp-newsletter-area {
+    background: #111111 !important;
+}
+
+input[type="email"],
+input[type="text"],
+input[type="search"],
+textarea {
+    background: #1a1a1a !important;
+    border: 1px solid #333 !important;
+    color: #fff !important;
+}
+
+/* ==========================
+   FOOTER
+========================== */
+
+.tp-footer-area {
+    background: #000000 !important;
+    border-top: 1px solid #222;
+}
+
+.tp-footer-widget-title {
+    color: #ffffff !important;
+}
+
+.tp-footer-widget-content a {
+    color: #bdbdbd !important;
+}
+
+.tp-footer-widget-content a:hover {
+    color: #ff6b00 !important;
+}
+
+/* ==========================
+   ORANGE GLOW
+========================== */
+
+.tp-btn,
+.tp-product-item:hover,
+.tp-product-category-item:hover {
+    box-shadow: 0 0 10px rgba(255, 107, 0, .25), 0 0 20px rgba(255, 107, 0, .15);
+}
+
+/* ==========================
+   SCROLLBAR
+========================== */
+
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: #111;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #ff6b00;
+    border-radius: 20px;
+}
+
+/* ==========================
+   Khud se
+========================== */
+
+.tp-product-tab .nav-tabs {
+    background-color: #ff6b00;
+}
+
+.tp-product-countdown-inner ul li {
+    background-color: #060606;
+}
+
+.tp-mobile-menu {
+    background-color: #000;
+}
+
+.tp-product-tab .nav-tabs .nav-item .nav-link {
+    color: #fff;
+}
+
+.tp-footer-social a {
+    align-items: center;
+    background: #ff6b00;
+    border-radius: 6px;
+    box-shadow: 0 1px 1px #e6e7e8;
+}
+
+.tp-product-details-sticky-actions {
+    background-color: #212529;
+}
+
+.modal-content {
+    background-color: #202020;
+}
+
+.tp-product-details-add-to-cart-btn {
+    --tp-btn-color: #ffc107;
+}
+
+.tp-product-add-cart-btn-large {
+    background-color: #ff6b00;
+}
+
+.cartmini__wrapper {
+    background-color: #202020;
+}
+
+.cartmini__checkout {
+    background: #202020;
+}
+
+.cartmini__checkout-btn .tp-btn {
+    background: #ff6b00;
+}
+
+.auth-card.auth-card__horizontal .auth-card__left {
+    background: #202020;
+}
+
+.auth-card.auth-card__horizontal .auth-card__right {
+    background: #202020;
+}
+
+.auth-card .auth-card__body label.form-label {
+    color: #ffffff;
+}
+
+.auth-card .auth-card__header p {
+    color: #ffffff !important;
+}
+
+.auth-card .auth-card__header {
+    background: #202020;
+}
+
+.cartmini__area .cartmini__del {
+    background: #ff6b00;
+}
+
+.tp-product-cross-sale-btn {
+    --tp-btn-color: var(--tp-common-black);
+    border: 1px solid #e0e2e3;
+    background: #ff6b00;
+    color: #ffffff;
+}
+
+.bg-light {
+    --bs-bg-opacity: 1;
+    background-color: #202020 !important;
+}
+
+.checkout-form .magic-checkbox+label,
+.checkout-form .magic-radio+label {
+    color: orange;
+}
+
+/* 1. Change the background color to black */
+
+div[style*="background: antiquewhite"] {
+    background: #202020 !important;
+}
+
+div[style*="background: antiquewhite"] span {
+    display: none !important;
+}
+
+li {
+    color: orange !important;
+}
+
+.bb-product-filter {
+    background: #000000;
+}
+
+/* Ticker Container */
+
+.ecommerce-ticker-wrap {
+    width: 100% !important;
+    height: 50px !important;
+    background-color: #ff0000 !important;
+    overflow: hidden !important;
+    position: relative !important;
+    display: flex !important;
+    align-items: center !important;
+    box-sizing: border-box !important;
+    z-index: 99999 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+/* Moving Track */
+
+.ecommerce-ticker {
+    display: flex !important;
+    align-items: center !important;
+    height: 50px !important;
+    /* Force track to stay 50px */
+    width: max-content !important;
+    animation: ticker-scroll 20s linear infinite !important;
+}
+
+/* Pause on Hover */
+
+.ecommerce-ticker-wrap:hover .ecommerce-ticker {
+    animation-play-state: paused !important;
+}
+
+/* Individual Offer Items */
+
+.ticker-item {
+    display: flex !important;
+    align-items: center !important;
+    height: 50px !important;
+    /* Forces the 156px height down to 50px */
+    padding: 0 40px !important;
+    margin: 0 !important;
+    white-space: nowrap !important;
+    box-sizing: border-box !important;
+}
+
+/* Link and Text Styling */
+
+.ticker-item a {
+    color: #ffffff !important;
+    text-decoration: none !important;
+    font-family: Arial, sans-serif !important;
+    font-size: 16px !important;
+    font-weight: bold !important;
+    line-height: 1 !important;
+    /* Fixes any weird theme spacing pushing text down */
+    display: inline-block !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+.ticker-item a:hover {
+    text-decoration: underline !important;
+}
+
+/* Continuous Scroll Animation */
+
+@keyframes ticker-scroll {
+    0% {
+        transform: translate3d(0, 0, 0);
+    }
+    100% {
+        transform: translate3d(-50%, 0, 0);
+    }
+}
