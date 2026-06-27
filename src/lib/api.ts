@@ -40,11 +40,3 @@ export async function getPage(slug: string) {
   const json = await res.json();
   return json.page ?? null; // ← { success, page: { title, content, slug } }
 }
-
-// ── COUPONS ──
-export async function getCoupons() {
-  const res = await fetch(`https://app.evoclabs.com/storefront/coupons`, { next: { revalidate: 60 } });
-  if (!res.ok) return [];
-  const json = await res.json();
-  return json.data ?? [];
-}

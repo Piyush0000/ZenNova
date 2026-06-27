@@ -1,64 +1,85 @@
 /* eslint-disable */
 "use client";
 
-import React from "react";
+import React, { useMemo } from "react";
+import type { Product } from "@/types/product";
+import ProductCard from "./components/products/ProductCard";
+import DealOfTheDaySection from "./components/products/DealOfTheDaySection";
+import CustomerReviewsSection from "./components/products/CustomerReviewsSection";
 
-type Product = {
-  id: string;
-  slug: string;
-  name: string;
-  images: string[];
-  price: string;
-  compareAtPrice: string;
-  category: string;
-  isBestSeller: boolean;
-  isNewArrival: boolean;
-  isFeatured: boolean;
-  sku?: string;
-};
+const DEFAULT_TICKER_ITEMS = [
+  {
+    text: "🔥 FLASH SALE: 20% OFF all electronics! Use code: FLASH20",
+    link: "/products",
+  },
+  {
+    text: "🚚 Free shipping on all orders over $50! Shop Now",
+    link: "/products",
+  },
+  {
+    text: "🎁 Buy 1 Get 1 Free on selected summer apparel!",
+    link: "/products",
+  },
+];
 
 type Props = {
   products: Product[];
   storeData: any;
 };
 
-export default function HomeClient({ products, storeData }: Props) {
-  const [activeTab, setActiveTab] = React.useState("all");
-  const [timeLeft, setTimeLeft] = React.useState({
-    days: 0,
-    hours: 12,
-    minutes: 30,
-    seconds: 45,
-  });
+const TESTIMONIALS = [
+  {
+    name: "Meraz",
+    designation: "Software Engineer & Fitness Enthusiast",
+    review:
+      '"Main pichle 3 weeks se <b><strong>Zen Nova Green Fuel</strong></b> aur <b><strong>Shilajit</strong></b> use kar raha hoon. Honestly, jo afternoon fatigue hoti thi system pe baithte-baithte, wo ab bilkul chali gayi hai. Clean energy milti hai pure din bina kisi crash ke. Highly recommended for working professionals who hit the gym!"',
+  },
+  {
+    name: "Priya Patel",
+    designation: "Student",
+    review:
+      '"I was skeptical about <b><strong>Zennova Apple Cider Vinegar</strong></b> because of the harsh taste of other brands, but diluted in warm water, this one is actually smooth. Morning me empty stomach lene se bloating bahut kam hui hai and it really promotes healthy skin. Plus, it has the Mother of Vinegar which is awesome!"',
+  },
+  {
+    name: "Neha Kapoor",
+    designation: "Digital Marketing Lead",
+    review:
+      '"Work stress ki wajah se racing thoughts hote the aur neend nahi aati thi easily. But <b><strong>Zennova SLEEPGlow</strong></b> changed the game. 1 tablet before bed and I fall asleep so fast. Best part? Agli subah koi groggy feeling ya sir dard nahi hota, fresh feeling ke saath wake up refresh hotey hain!"',
+  },
+  {
+    name: "Dr. Rohan Joshi",
+    designation: "Consultant Physiotherapist",
+    review:
+      '"Hamari modern busy diet me micro-nutrients miss ho jaate hain. I personally take <b><strong>Zennova Multivitamins</strong></b> daily. B-Complex, Vitamin D3, aur Zinc ka proper balance hai. Energy levels sustained rehte hain and immune system robust feel hota hai. Great foundational supplement."',
+  },
+  {
+    name: "Rahul Verma",
+    designation: "Sales Manager",
+    review:
+      '"Work stress aur target pressure ki wajah se stamina aur drive low chal rahi thi. <b><strong>Zennova UPLIFT X</strong></b> start kiya and within 2 weeks performance aur endurance me bohot difference aaya hai. Total value for money product!"',
+  },
+  {
+    name: "Marcus Thorne",
+    designation: "Financial Analyst",
+    review:
+      '"High-impact training used to leave my knees and lower back feeling incredibly tight for days. <b><strong>Zennova Pain Relief</strong></b> has drastically shortened my recovery time. The natural anti-inflammatory benefits are real, and my joint mobility feels fluid again."',
+  },
+];
 
-  React.useEffect(() => {
-    const targetTime =
-      new Date().getTime() +
-      12 * 60 * 60 * 1000 +
-      30 * 60 * 1000 +
-      45 * 1000;
-    const interval = setInterval(() => {
-      const now = new Date().getTime();
-      const difference = targetTime - now;
-      if (difference <= 0) {
-        clearInterval(interval);
-        return;
-      }
-      const d = Math.floor(difference / (1000 * 60 * 60 * 24));
-      const h = Math.floor(
-        (difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)
-      );
-      const m = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
-      const s = Math.floor((difference % (1000 * 60)) / 1000);
-      setTimeLeft({ days: d, hours: h, minutes: m, seconds: s });
-    }, 1000);
-    return () => clearInterval(interval);
-  }, []);
+export default function HomeClient({ products, storeData }: Props) {
+  const tickerItems = useMemo(() => {
+    const fromApi = storeData?.customization?.announcementBar?.announcements ?? [];
+    return fromApi.length > 0 ? fromApi : DEFAULT_TICKER_ITEMS;
+  }, [storeData]);
+
+  const uniqueCategories = useMemo(
+    () => [...new Set((storeData?.categories ?? []) as string[])],
+    [storeData?.categories]
+  );
 
   React.useEffect(() => {
     const timer = setTimeout(() => {
       if (typeof window !== "undefined" && (window as any).Swiper) {
-        // 1. Hero Banner Slider
         new (window as any).Swiper(".tp-slider-active", {
           slidesPerView: 1,
           spaceBetween: 30,
@@ -66,40 +87,38 @@ export default function HomeClient({ products, storeData }: Props) {
           loop: true,
           autoplay: {
             delay: 5000,
-            disableOnInteraction: false
+            disableOnInteraction: false,
           },
           navigation: {
             nextEl: ".tp-slider-button-prev",
-            prevEl: ".tp-slider-button-next"
+            prevEl: ".tp-slider-button-next",
           },
           pagination: {
             el: ".tp-slider-dot",
             clickable: true,
             renderBullet: function (index: number, className: string) {
               return `<span class="${className}"><button>${index + 1}</button></span>`;
-            }
-          }
+            },
+          },
         });
 
-        // 2. Product Categories Slider
         new (window as any).Swiper(".tp-product-categories-slider", {
           slidesPerView: 5,
           spaceBetween: 20,
-          loop: true,
+          loop: false,
           autoplay: {
             delay: 3000,
-            disableOnInteraction: false
+            disableOnInteraction: false,
           },
           breakpoints: {
             1200: { slidesPerView: 5 },
             992: { slidesPerView: 4 },
             768: { slidesPerView: 3 },
             420: { slidesPerView: 2 },
-            0: { slidesPerView: 2 }
-          }
+            0: { slidesPerView: 2 },
+          },
         });
 
-        // 3. All Products Slider
         new (window as any).Swiper(".tp-all-products-active", {
           slidesPerView: 4,
           spaceBetween: 30,
@@ -109,22 +128,21 @@ export default function HomeClient({ products, storeData }: Props) {
             clickable: true,
             renderBullet: function (index: number, className: string) {
               return `<span class="${className}"><button>${index + 1}</button></span>`;
-            }
+            },
           },
           navigation: {
             nextEl: ".tp-all-products-slider-button-next",
-            prevEl: ".tp-all-products-slider-button-prev"
+            prevEl: ".tp-all-products-slider-button-prev",
           },
           breakpoints: {
             1200: { slidesPerView: 4 },
             992: { slidesPerView: 3 },
             768: { slidesPerView: 2 },
             420: { slidesPerView: 2 },
-            0: { slidesPerView: 1 }
-          }
+            0: { slidesPerView: 1 },
+          },
         });
 
-        // 4. Trending Products (Arrivals) Slider
         new (window as any).Swiper(".tp-product-arrival-active", {
           slidesPerView: 4,
           spaceBetween: 30,
@@ -134,11 +152,11 @@ export default function HomeClient({ products, storeData }: Props) {
             clickable: true,
             renderBullet: function (index: number, className: string) {
               return `<span class="${className}"><button>${index + 1}</button></span>`;
-            }
+            },
           },
           navigation: {
             nextEl: ".tp-arrival-slider-button-next",
-            prevEl: ".tp-arrival-slider-button-prev"
+            prevEl: ".tp-arrival-slider-button-prev",
           },
           breakpoints: {
             1200: { slidesPerView: 4 },
@@ -146,40 +164,38 @@ export default function HomeClient({ products, storeData }: Props) {
             768: { slidesPerView: 2 },
             420: { slidesPerView: 2 },
             375: { slidesPerView: 2 },
-            0: { slidesPerView: 1 }
-          }
+            0: { slidesPerView: 1 },
+          },
         });
 
-        // 5. Blog Slider
         new (window as any).Swiper(".tp-blog-main-slider-active", {
           slidesPerView: 3,
           spaceBetween: 20,
           loop: true,
           autoplay: {
             delay: 4000,
-            disableOnInteraction: false
+            disableOnInteraction: false,
           },
           navigation: {
             nextEl: ".tp-blog-main-slider-button-next",
-            prevEl: ".tp-blog-main-slider-button-prev"
+            prevEl: ".tp-blog-main-slider-button-prev",
           },
           pagination: {
             el: ".tp-blog-main-slider-dot",
             clickable: true,
             renderBullet: function (index: number, className: string) {
               return `<span class="${className}"><button>${index + 1}</button></span>`;
-            }
+            },
           },
           breakpoints: {
             1200: { slidesPerView: 3 },
             992: { slidesPerView: 2 },
             768: { slidesPerView: 2 },
             576: { slidesPerView: 1 },
-            0: { slidesPerView: 1 }
-          }
+            0: { slidesPerView: 1 },
+          },
         });
 
-        // 6. Testimonial Slider
         new (window as any).Swiper(".tp-testimoinal-slider-active-3", {
           slidesPerView: 2,
           spaceBetween: 24,
@@ -189,42 +205,37 @@ export default function HomeClient({ products, storeData }: Props) {
             clickable: true,
             renderBullet: function (index: number, className: string) {
               return `<span class="${className}"><button>${index + 1}</button></span>`;
-            }
+            },
           },
           navigation: {
             nextEl: ".tp-testimoinal-slider-button-next-3",
-            prevEl: ".tp-testimoinal-slider-button-prev-3"
+            prevEl: ".tp-testimoinal-slider-button-prev-3",
           },
           breakpoints: {
             1200: { slidesPerView: 2 },
             992: { slidesPerView: 2 },
             768: { slidesPerView: 1 },
             576: { slidesPerView: 1 },
-            0: { slidesPerView: 1 }
-          }
+            0: { slidesPerView: 1 },
+          },
         });
       }
     }, 300);
-    return () => clearTimeout(timer);
-  }, []);
 
-  const getBadge = (product: Product) => {
-    if (product.isBestSeller) return "Hot";
-    const discount = product.compareAtPrice
-      ? Math.round(
-          ((Number(product.compareAtPrice) - Number(product.price)) /
-            Number(product.compareAtPrice)) *
-            100
-        )
-      : 0;
-    return discount > 0 ? `-${discount}%` : null;
-  };
+    return () => clearTimeout(timer);
+  }, [products.length, uniqueCategories.length]);
+
+  const banners = storeData?.customization?.bannersSection?.banners ?? [];
+  const catalogueSlide = storeData?.customization?.heroSection?.slides?.find(
+    (slide: any) => slide.ctaLink === "/catalogue"
+  );
 
   return (
     <>
       <main>
-
-        <style dangerouslySetInnerHTML={{ __html: `
+        <style
+          dangerouslySetInnerHTML={{
+            __html: `
             @font-face {
                 font-family: 'Oregano';
                 font-style: normal;
@@ -241,227 +252,154 @@ export default function HomeClient({ products, storeData }: Props) {
                 src: url(/storage/fonts/eeb4986ca8/soreganov15if2ixtpxcis3h4s2ozdvphvnzyi.woff2) format('woff2');
                 unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
             }
-        ` }} />
+        `,
+          }}
+        />
 
-        {/* HERO SLIDER */}
-     <section className="tp-slider-area p-relative z-index-1">
-  <div className="tp-slider-full-width tp-slider-active tp-slider-variation swiper-container" data-loop="1" data-autoplay="1" data-autoplay-speed="5000">
-    <div className="swiper-wrapper">
-      {(storeData?.customization?.heroSection?.slides ?? []).map((slide: any, i: number) => (
-        <div className="tp-slider-item swiper-slide" key={i} style={{ backgroundColor: "transparent" } as React.CSSProperties}>
-          <div className="tp-slider-thumb text-end">
-            <img src={slide.backgroundImage} loading={i === 0 ? "eager" : "lazy"} alt={slide.title ?? ""} style={{ width: "100%" }} />
+        <section className="tp-slider-area p-relative z-index-1">
+          <div
+            className="tp-slider-full-width tp-slider-active tp-slider-variation swiper-container"
+            data-loop="1"
+            data-autoplay="1"
+            data-autoplay-speed="5000"
+          >
+            <div className="swiper-wrapper">
+              {(storeData?.customization?.heroSection?.slides ?? []).map(
+                (slide: any, i: number) => (
+                  <div
+                    className="tp-slider-item swiper-slide"
+                    key={i}
+                    style={{ backgroundColor: "transparent" } as React.CSSProperties}
+                  >
+                    <div className="tp-slider-thumb text-end">
+                      <img
+                        src={slide.backgroundImage}
+                        loading={i === 0 ? "eager" : "lazy"}
+                        alt={slide.title ?? ""}
+                        style={{ width: "100%" }}
+                      />
+                    </div>
+                  </div>
+                )
+              )}
+            </div>
+            <div className="tp-slider-arrow tp-swiper-arrow d-none d-lg-block">
+              <button type="button" className="tp-slider-button-prev">
+                <svg width="8" height="14" viewBox="0 0 8 14" fill="none">
+                  <path
+                    d="M7 13L1 7L7 1"
+                    stroke="currentColor"
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </button>
+              <button type="button" className="tp-slider-button-next">
+                <svg width="8" height="14" viewBox="0 0 8 14" fill="none">
+                  <path
+                    d="M1 13L7 7L1 1"
+                    stroke="currentColor"
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </button>
+            </div>
+            <div className="tp-slider-dot tp-swiper-dot" />
+          </div>
+        </section>
+
+        <div className="ecommerce-ticker-wrap">
+          <div className="ecommerce-ticker">
+            {tickerItems.map((a: any, i: number) => (
+              <div className="ticker-item" key={i}>
+                <a href={a.link ?? "#"}>{a.text}</a>
+              </div>
+            ))}
+            {tickerItems.map((a: any, i: number) => (
+              <div className="ticker-item" key={`dup-${i}`} aria-hidden="true">
+                <a href={a.link ?? "#"}>{a.text}</a>
+              </div>
+            ))}
           </div>
         </div>
-      ))}
-    </div>
-    <div className="tp-slider-arrow tp-swiper-arrow d-none d-lg-block">
-      <button type="button" className="tp-slider-button-prev">
-        <svg width="8" height="14" viewBox="0 0 8 14" fill="none"><path d="M7 13L1 7L7 1" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
-      </button>
-      <button type="button" className="tp-slider-button-next">
-        <svg width="8" height="14" viewBox="0 0 8 14" fill="none"><path d="M1 13L7 7L1 1" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
-      </button>
-    </div>
-    <div className="tp-slider-dot tp-swiper-dot"></div>
-  </div>
-</section>
 
-        {/* TICKER */}
-        <div className="ecommerce-ticker-wrap">
-  <div className="ecommerce-ticker">
-    {(storeData?.customization?.announcementBar?.announcements ?? []).map((a: any, i: number) => (
-      <div className="ticker-item" key={i}><a href={a.link ?? "#"}>{a.text}</a></div>
-    ))}
-    {/* duplicate for infinite scroll */}
-    {(storeData?.customization?.announcementBar?.announcements ?? []).map((a: any, i: number) => (
-      <div className="ticker-item" key={`dup-${i}`} aria-hidden="true"><a href={a.link ?? "#"}>{a.text}</a></div>
-    ))}
-  </div>
-</div>
+        <section className="tp-category-area pt-30 pb-30">
+          <div className="container">
+            <div className="tp-product-categories-slider swiper-container">
+              <div className="swiper-wrapper">
+                {(uniqueCategories).map((cat: string) => {
+                  const count = products.filter((p) => p.category === cat).length;
+                  const image =
+                    storeData?.customization?.categoryImages?.[cat.toLowerCase()];
+                  const slug = cat.toLowerCase().trim().replace(/\s+/g, "-");
 
-        {/* CATEGORIES */}
-{(storeData?.categories ?? []).map((cat: string) => {
-  const count = products.filter(
-    (p: any) => p.category === cat
-  ).length;
+                  return (
+                    <div className="swiper-slide" key={slug}>
+                      <div className="tp-product-category-item text-center mb-40">
+                        <div className="tp-product-category-thumb fix">
+                          <a
+                            href={`/product-categories/${slug}`}
+                            title={cat}
+                          >
+                            {image && <img src={image} alt={cat} />}
+                          </a>
+                        </div>
+                        <div className="tp-product-category-content">
+                          <h3 className="tp-product-category-title">
+                            <a href={`/product-categories/${slug}`}>
+                              {cat}
+                            </a>
+                          </h3>
+                          <p>
+                            {count} product{count !== 1 ? "s" : ""}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        </section>
 
-  const image =
-    cat === "BODY"
-      ? storeData?.customization?.categoryImages?.body
-      : "";
-
-  return (
-    <div className="swiper-slide" key={cat}>
-      <div className="tp-product-category-item text-center mb-40">
-        <div className="tp-product-category-thumb fix">
-          <a
-            href={`/product-categories/${cat
-              .toLowerCase()
-              .replace(/\s+/g, "-")}`}
-            title={cat}
-          >
-            {image && (
-              <img
-                src={image}
-                alt={cat}
-              />
-            )}
-          </a>
-        </div>
-
-        <div className="tp-product-category-content">
-          <h3 className="tp-product-category-title">
-            <a
-              href={`/product-categories/${cat
-                .toLowerCase()
-                .replace(/\s+/g, "-")}`}
-            >
-              {cat}
-            </a>
-          </h3>
-
-          <p>
-            {count} product{count !== 1 ? "s" : ""}
-          </p>
-        </div>
-      </div>
-    </div>
-  );
-})}
-   {/* ALL SUPPLEMENTS */}
         <section className="tp-product-area pb-50 pt-50 grey-bg-2">
           <div className="container">
             <div className="row align-items-end mb-40">
-              <div className="col-xl-5 col-lg-6 col-md-5">
+              <div className="col-12">
                 <div className="tp-section-title-wrapper">
                   <h3 className="section-title tp-section-title">
                     <span>All</span> Supplements
                   </h3>
                 </div>
               </div>
-              <div className="col-xl-7 col-lg-6 col-md-7">
-                <div className="tp-product-tab text-md-end">
-                  <div className="tp-product-tab-inner">
-                    <ul className="nav nav-tabs justify-content-md-end" style={{ border: "none" }}>
-                      {[
-                        { key: "all", label: "All Products" },
-                        { key: "energy", label: "Energy & Vitality" },
-                        { key: "wellness", label: "Health & Wellness" },
-                      ].map((tab) => (
-                        <li className="nav-item" key={tab.key} style={{ marginRight: "10px" }}>
-                          <button
-                            className={`tp-product-tab-btn ${activeTab === tab.key ? "active" : ""}`}
-                            style={{
-                              background: activeTab === tab.key ? "var(--primary-color)" : "#fff",
-                              color: activeTab === tab.key ? "#fff" : "#000",
-                              border: "1px solid #ddd",
-                              padding: "8px 20px",
-                              borderRadius: "4px",
-                              fontWeight: 500,
-                              transition: "all 0.3s",
-                            }}
-                            onClick={() => setActiveTab(tab.key)}
-                          >
-                            {tab.label}
-                          </button>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                </div>
-              </div>
             </div>
 
             <div className="row">
-              {products
-                .filter((p) => {
-                  if (activeTab === "all") return true;
-                  if (activeTab === "energy") return p.isBestSeller;
-                  if (activeTab === "wellness") return p.isNewArrival;
-                  return true;
-                })
-                .map((product) => (
-                  <div className="col-xl-3 col-lg-4 col-sm-6 mb-30" key={product.id}>
-                    <div className="tp-product-item transition-3 p-relative fix m-img bg-white rounded shadow-sm" style={{ border: "1px solid #eee", overflow: "hidden" }}>
-                      <div className="tp-product-thumb p-relative fix">
-                        <a href={`/products/${product.slug}`}>
-                          <img src={product.images[0]} alt={product.name} className="w-100" style={{ transition: "transform 0.5s" }} />
-                        </a>
-                        {getBadge(product) && (
-                          <div className="tp-product-badge">
-                            <span style={{ backgroundColor: "#AC2200" }}>{getBadge(product)}</span>
-                          </div>
-                        )}
-                        <div className="tp-product-action">
-                          <div className="d-flex flex-column tp-product-action-item">
-                            <button type="button" className="tp-product-compare-btn tp-product-action-btn" data-bb-toggle="add-to-compare" title="Add To Compare" data-url={`/compare/${product.id}`} data-remove-url={`/compare/${product.id}`}
-                                data-add-text="Add To Compare" data-remove-text="Remove From Compare">
-                                <svg width="17" height="21" viewBox="0 0 17 21" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                    <path d="M12.6666 1L16 4.33333L12.6666 7.66667" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                                    <path d="M1 9.3335V7.66683C1 6.78277 1.35119 5.93493 1.97631 5.30981C2.60143 4.68469 3.44928 4.3335 4.33333 4.3335H16" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                                    <path d="M4.33333 19.3332L1 15.9998L4.33333 12.6665" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                                    <path d="M16 11V12.6667C16 13.5507 15.6488 14.3986 15.0237 15.0237C14.3986 15.6488 13.5507 16 12.6667 16H1" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                                </svg>
-                                <span className="tp-product-tooltip">Add To Compare</span>
-                            </button>
-                            <button type="button" className="tp-product-quick-view-btn tp-product-action-btn" title="Quick View" data-bs-toggle="modal" data-bs-target="#product-quick-view-modal" data-url={`/ajax/quick-view/${product.id}`}>
-                                <svg width="20" height="17" viewBox="0 0 20 17" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                    <path fillRule="evenodd" clipRule="evenodd" d="M9.99938 5.64111C8.66938 5.64111 7.58838 6.72311 7.58838 8.05311C7.58838 9.38211 8.66938 10.4631 9.99938 10.4631C11.3294 10.4631 12.4114 9.38211 12.4114 8.05311C12.4114 6.72311 11.3294 5.64111 9.99938 5.64111ZM9.99938 11.9631C7.84238 11.9631 6.08838 10.2091 6.08838 8.05311C6.08838 5.89611 7.84238 4.14111 9.99938 4.14111C12.1564 4.14111 13.9114 5.89611 13.9114 8.05311C13.9114 10.2091 12.1564 11.9631 9.99938 11.9631Z" fill="currentColor"/>
-                                    <g mask="url(#mask0_1211_721)">
-                                        <path fillRule="evenodd" clipRule="evenodd" d="M1.56975 8.05226C3.42975 12.1613 6.56275 14.6043 9.99975 14.6053C13.4368 14.6043 16.5697 12.1613 18.4298 8.05226C16.5697 3.94426 13.4368 1.50126 9.99975 1.50026C6.56375 1.50126 3.42975 3.94426 1.56975 8.05226ZM10.0017 16.1053H9.99775H9.99675C5.86075 16.1023 2.14675 13.2033 0.06075 8.34826C-0.02025 8.15926 -0.02025 7.94526 0.06075 7.75626C2.14675 2.90226 5.86175 0.00326172 9.99675 0.000261719C9.99875 -0.000738281 9.99875 -0.000738281 9.99975 0.000261719C10.0017 -0.000738281 10.0017 -0.000738281 10.0028 0.000261719C14.1388 0.00326172 17.8527 2.90226 19.9387 7.75626C20.0208 7.94526 20.0208 8.15926 19.9387 8.34826C17.8537 13.2033 14.1388 16.1023 10.0028 16.1053H10.0017Z" fill="currentColor"/>
-                                    </g>
-                                </svg>
-                                <span className="tp-product-tooltip">Quick View</span>
-                            </button>
-                            <button type="button" className="tp-product-add-to-wishlist-btn tp-product-action-btn" data-bb-toggle="add-to-wishlist" title="Add To Wishlist" data-url={`/wishlist/${product.id}`} data-add-text="Add To Wishlist"
-                                data-remove-text="Remove From Wishlist">
-                                <svg width="20" height="19" viewBox="0 0 20 19" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                    <path fillRule="evenodd" clipRule="evenodd" d="M1.78158 8.88867C3.15121 13.1386 8.5623 16.5749 10.0003 17.4255C11.4432 16.5662 16.8934 13.0918 18.219 8.89257C19.0894 6.17816 18.2815 2.73984 15.0714 1.70806C13.5162 1.21019 11.7021 1.5132 10.4497 2.4797C10.1879 2.68041 9.82446 2.68431 9.56069 2.48555C8.23405 1.49079 6.50102 1.19947 4.92136 1.70806C1.71613 2.73887 0.911158 6.17718 1.78158 8.88867ZM10.0013 19C9.88015 19 9.75999 18.9708 9.65058 18.9113C9.34481 18.7447 2.14207 14.7852 0.386569 9.33491C0.385592 9.33491 0.385592 9.33394 0.385592 9.33394C-0.71636 5.90244 0.510636 1.59018 4.47199 0.316764C6.33203 -0.283407 8.35911 -0.019371 9.99836 1.01242C11.5868 0.0108324 13.6969 -0.26587 15.5198 0.316764C19.4851 1.59213 20.716 5.90342 19.615 9.33394C17.9162 14.7218 10.6607 18.7408 10.353 18.9094C10.2436 18.9698 10.1224 19 10.0013 19Z" fill="currentColor"/>
-                                    <path fillRule="evenodd" clipRule="evenodd" d="M15.7806 7.42904C15.4025 7.42904 15.0821 7.13968 15.0508 6.75775C14.9864 5.95687 14.4491 5.2807 13.6841 5.03421C13.2983 4.9095 13.0873 4.49737 13.2113 4.11446C13.3373 3.73059 13.7467 3.52209 14.1335 3.6429C15.4651 4.07257 16.398 5.24855 16.5123 6.63888C16.5445 7.04127 16.2446 7.39397 15.8412 7.42612C15.8206 7.42807 15.8011 7.42904 15.7806 7.42904Z" fill="currentColor"/>
-                                </svg>
-                                <span className="tp-product-tooltip">Add To Wishlist</span>
-                            </button>
-                          </div>
+              <div className="col-xl-12">
+                <div className="tp-product-slider fix">
+                  <div
+                    className="tp-all-products-active swiper-container"
+                    data-items-per-view="4"
+                  >
+                    <div className="swiper-wrapper">
+                      {products.map((product) => (
+                        <div className="swiper-slide h-auto" key={product.id}>
+                          <ProductCard product={product} showCountdown={false} />
                         </div>
-                      </div>
-                      <div className="tp-product-content p-3">
-                        <h3 className="text-truncate tp-product-title mb-2">
-                          <a href={`/products/${product.slug}`} title={product.name} style={{ color: "#000", fontWeight: 500 }}>
-                            {product.name}
-                          </a>
-                        </h3>
-                        <div className="tp-product-price-wrapper">
-                          <span className="tp-product-price new-price" style={{ color: "var(--primary-color)", fontWeight: "bold" }}>₹{product.price}</span>
-                          <span className="tp-product-price old-price" style={{ marginLeft: "10px", color: "#999" }}><del>₹{product.compareAtPrice}</del></span>
-                        </div>
-                      </div>
-                      <div className="p-3 pt-0">
-                        <button
-                          type="button"
-                          className="tp-product-add-cart-btn-large w-100 py-2 rounded text-center text-white"
-                          style={{ position: 'static', opacity: 1, visibility: 'visible', background: '#ff6b00', border: 'none', transition: 'all 0.3s' }}
-                          data-bb-toggle="quick-shop"
-                          data-url={`/ajax/quick-shop/${product.slug}`}
-                          data-product-id={product.id}
-                          data-product-name={product.name}
-                          data-product-price={product.price}
-                          data-product-sku={product.sku || ""}
-                          data-product-category={product.category || ""}
-                          data-product-categories={product.category || ""}
-                          title="Quick Shop"
-                        >
-                          Add To Cart
-                        </button>
-                      </div>
+                      ))}
                     </div>
                   </div>
-                ))}
+                  <div className="tp-all-products-slider-dot tp-swiper-dot text-center mt-30" />
+                </div>
+              </div>
             </div>
           </div>
         </section>
 
-        {/* TRENDING PRODUCTS */}
         <section className="tp-product-arrival-area pt-30 pb-30">
           <div className="container">
             <div className="row align-items-center mb-40">
@@ -476,112 +414,67 @@ export default function HomeClient({ products, storeData }: Props) {
                 <div className="tp-product-arrival-more-wrapper d-flex justify-content-end">
                   <div className="tp-product-arrival-arrow tp-swiper-arrow text-end tp-product-arrival-border">
                     <button type="button" className="tp-arrival-slider-button-prev">
-                      <svg width="8" height="14" viewBox="0 0 8 14" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M7 13L1 7L7 1" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                      <svg width="8" height="14" viewBox="0 0 8 14" fill="none">
+                        <path
+                          d="M7 13L1 7L7 1"
+                          stroke="currentColor"
+                          strokeWidth="1.5"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
                       </svg>
                     </button>
                     <button type="button" className="tp-arrival-slider-button-next">
-                      <svg width="8" height="14" viewBox="0 0 8 14" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M1 13L7 7L1 1" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                      <svg width="8" height="14" viewBox="0 0 8 14" fill="none">
+                        <path
+                          d="M1 13L7 7L1 1"
+                          stroke="currentColor"
+                          strokeWidth="1.5"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
                       </svg>
                     </button>
                   </div>
                 </div>
               </div>
             </div>
+
             <div className="row">
               <div className="col-xl-12">
                 <div className="tp-product-arrival-slider fix">
-                  <div className="tp-product-arrival-active swiper-container" data-items-per-view="4">
+                  <div
+                    className="tp-product-arrival-active swiper-container"
+                    data-items-per-view="4"
+                  >
                     <div className="swiper-wrapper">
                       {products.map((product) => (
-                        <div className="tp-product-item transition-3 mb-25 swiper-slide" key={product.id}>
-                          <div className="tp-product-thumb p-relative fix m-img">
-                            <a href={`/products/${product.slug}`}>
-                              <img src={product.images[0]} alt={product.name} />
-                            </a>
-                            {getBadge(product) && (
-                              <div className="tp-product-badge">
-                                <span style={{ backgroundColor: "#AC2200" }}>{getBadge(product)}</span>
-                              </div>
-                            )}
-                            <div className="tp-product-action">
-                              <div className="d-flex flex-column tp-product-action-item">
-                                <button type="button" className="tp-product-compare-btn tp-product-action-btn" data-bb-toggle="add-to-compare" title="Add To Compare" data-url={`/compare/${product.id}`} data-remove-url={`/compare/${product.id}`}
-                                    data-add-text="Add To Compare" data-remove-text="Remove From Compare">
-                                    <svg width="17" height="21" viewBox="0 0 17 21" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                        <path d="M12.6666 1L16 4.33333L12.6666 7.66667" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                                        <path d="M1 9.3335V7.66683C1 6.78277 1.35119 5.93493 1.97631 5.30981C2.60143 4.68469 3.44928 4.3335 4.33333 4.3335H16" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                                        <path d="M4.33333 19.3332L1 15.9998L4.33333 12.6665" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                                        <path d="M16 11V12.6667C16 13.5507 15.6488 14.3986 15.0237 15.0237C14.3986 15.6488 13.5507 16 12.6667 16H1" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                                    </svg>
-                                    <span className="tp-product-tooltip">Add To Compare</span>
-                                </button>
-                                <button type="button" className="tp-product-quick-view-btn tp-product-action-btn" title="Quick View" data-bs-toggle="modal" data-bs-target="#product-quick-view-modal" data-url={`/ajax/quick-view/${product.id}`}>
-                                    <svg width="20" height="17" viewBox="0 0 20 17" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                        <path fillRule="evenodd" clipRule="evenodd" d="M9.99938 5.64111C8.66938 5.64111 7.58838 6.72311 7.58838 8.05311C7.58838 9.38211 8.66938 10.4631 9.99938 10.4631C11.3294 10.4631 12.4114 9.38211 12.4114 8.05311C12.4114 6.72311 11.3294 5.64111 9.99938 5.64111ZM9.99938 11.9631C7.84238 11.9631 6.08838 10.2091 6.08838 8.05311C6.08838 5.89611 7.84238 4.14111 9.99938 4.14111C12.1564 4.14111 13.9114 5.89611 13.9114 8.05311C13.9114 10.2091 12.1564 11.9631 9.99938 11.9631Z" fill="currentColor"/>
-                                        <g mask="url(#mask0_1211_721)">
-                                            <path fillRule="evenodd" clipRule="evenodd" d="M1.56975 8.05226C3.42975 12.1613 6.56275 14.6043 9.99975 14.6053C13.4368 14.6043 16.5697 12.1613 18.4298 8.05226C16.5697 3.94426 13.4368 1.50126 9.99975 1.50026C6.56375 1.50126 3.42975 3.94426 1.56975 8.05226ZM10.0017 16.1053H9.99775H9.99675C5.86075 16.1023 2.14675 13.2033 0.06075 8.34826C-0.02025 8.15926 -0.02025 7.94526 0.06075 7.75626C2.14675 2.90226 5.86175 0.00326172 9.99675 0.000261719C9.99875 -0.000738281 9.99875 -0.000738281 9.99975 0.000261719C10.0017 -0.000738281 10.0017 -0.000738281 10.0028 0.000261719C14.1388 0.00326172 17.8527 2.90226 19.9387 7.75626C20.0208 7.94526 20.0208 8.15926 19.9387 8.34826C17.8537 13.2033 14.1388 16.1023 10.0028 16.1053H10.0017Z" fill="currentColor"/>
-                                        </g>
-                                    </svg>
-                                </button>
-                                <button type="button" className="tp-product-add-to-wishlist-btn tp-product-action-btn" data-bb-toggle="add-to-wishlist" title="Add To Wishlist" data-url={`/wishlist/${product.id}`} data-add-text="Add To Wishlist"
-                                    data-remove-text="Remove From Wishlist">
-                                    <svg width="20" height="19" viewBox="0 0 20 19" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                        <path fillRule="evenodd" clipRule="evenodd" d="M1.78158 8.88867C3.15121 13.1386 8.5623 16.5749 10.0003 17.4255C11.4432 16.5662 16.8934 13.0918 18.219 8.89257C19.0894 6.17816 18.2815 2.73984 15.0714 1.70806C13.5162 1.21019 11.7021 1.5132 10.4497 2.4797C10.1879 2.68041 9.82446 2.68431 9.56069 2.48555C8.23405 1.49079 6.50102 1.19947 4.92136 1.70806C1.71613 2.73887 0.911158 6.17718 1.78158 8.88867ZM10.0013 19C9.88015 19 9.75999 18.9708 9.65058 18.9113C9.34481 18.7447 2.14207 14.7852 0.386569 9.33491C0.385592 9.33491 0.385592 9.33394 0.385592 9.33394C-0.71636 5.90244 0.510636 1.59018 4.47199 0.316764C6.33203 -0.283407 8.35911 -0.019371 9.99836 1.01242C11.5868 0.0108324 13.6969 -0.26587 15.5198 0.316764C19.4851 1.59213 20.716 5.90342 19.615 9.33394C17.9162 14.7218 10.6607 18.7408 10.353 18.9094C10.2436 18.9698 10.1224 19 10.0013 19Z" fill="currentColor"/>
-                                        <path fillRule="evenodd" clipRule="evenodd" d="M15.7806 7.42904C15.4025 7.42904 15.0821 7.13968 15.0508 6.75775C14.9864 5.95687 14.4491 5.2807 13.6841 5.03421C13.2983 4.9095 13.0873 4.49737 13.2113 4.11446C13.3373 3.73059 13.7467 3.52209 14.1335 3.6429C15.4651 4.07257 16.398 5.24855 16.5123 6.63888C16.5445 7.04127 16.2446 7.39397 15.8412 7.42612C15.8206 7.42807 15.8011 7.42904 15.7806 7.42904Z" fill="currentColor"/>
-                                    </svg>
-                                    <span className="tp-product-tooltip">Add To Wishlist</span>
-                                </button>
-                              </div>
-                            </div>
-                          </div>
-                          <div className="tp-product-content">
-                            <h3 className="text-truncate tp-product-title">
-                              <a href={`/products/${product.slug}`} title={product.name}>{product.name}</a>
-                            </h3>
-                            <div className="tp-product-price-wrapper">
-                              <span className="tp-product-price new-price">₹{product.price}</span>
-                              <small><del className="tp-product-price old-price">₹{product.compareAtPrice}</del></small>
-                            </div>
-                          </div>
-                          <div className="p-3 pt-0">
-                            <button
-                              type="button"
-                              className="tp-product-add-cart-btn-large w-100 py-2 rounded text-center text-white"
-                              style={{ position: 'static', opacity: 1, visibility: 'visible', background: '#ff6b00', border: 'none', transition: 'all 0.3s' }}
-                              data-bb-toggle="quick-shop"
-                              data-url={`/ajax/quick-shop/${product.slug}`}
-                              data-product-id={product.id}
-                              data-product-name={product.name}
-                              data-product-price={product.price}
-                              data-product-sku={product.sku || ""}
-                              data-product-category={product.category || ""}
-                              data-product-categories={product.category || ""}
-                              title="Quick Shop"
-                            >
-                              Add To Cart
-                            </button>
-                          </div>
+                        <div className="swiper-slide h-auto" key={product.id}>
+                          <ProductCard product={product} showCountdown={false} />
                         </div>
                       ))}
                     </div>
                   </div>
+                  <div className="tp-arrival-slider-dot tp-swiper-dot text-center mt-30" />
                 </div>
               </div>
             </div>
           </div>
         </section>
 
-        {/* BANNERS */}
         <section className="tp-banner-area pt-30 pb-30">
           <div className="container">
             <div className="row">
               <div className="col-xl-8 col-lg-7">
                 <div className="tp-banner-item tp-banner-height p-relative mb-30 z-index-1 fix">
                   <div className="tp-banner-thumb include-bg transition-3">
-                    <a href="/products/zennova-shilajit-pure-himalayan-power-advanced-gold-grade-formula">
-                      <img src="/storage/untitled-design-3.webp" style={{ width: "100%" }} loading="lazy" alt="Ads 1" />
+                    <a href={catalogueSlide?.ctaLink || "#"}>
+                      <img
+                        src={banners[0]?.image}
+                        alt={catalogueSlide?.title || "Catalogue"}
+                        style={{ width: "100%" }}
+                        loading="lazy"
+                      />
                     </a>
                   </div>
                 </div>
@@ -589,17 +482,40 @@ export default function HomeClient({ products, storeData }: Props) {
               <div className="col-xl-4 col-lg-5">
                 <div className="tp-banner-item tp-banner-height p-relative mb-30 z-index-1 fix">
                   <div className="tp-banner-thumb include-bg transition-3">
-                    <a href="/products/zennova-lungs-detox">
-                      <img src="/storage/chatgpt-image-may-20-2026-12-37-31-am.webp" style={{ width: "100%" }} loading="lazy" alt="Ads 2" />
+                    <a href={banners[1]?.link || "/products"}>
+                      <img
+                        src={banners[1]?.image}
+                        alt={banners[1]?.title || "Banner"}
+                        style={{ width: "100%" }}
+                        loading="lazy"
+                      />
                     </a>
                   </div>
                   <div className="tp-banner-content">
                     <div className="tp-banner-btn">
-                      <a href="/products/zennova-lungs-detox" className="tp-link-btn">
-                        Shop Now
-                        <svg width="15" height="13" viewBox="0 0 15 13" fill="none" xmlns="http://www.w3.org/2000/svg">
-                          <path d="M13.9998 6.19656L1 6.19656" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                          <path d="M8.75674 0.975394L14 6.19613L8.75674 11.4177" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                      <a href={banners[1]?.link || "/products"} className="tp-link-btn">
+                        {banners[1]?.buttonText || "Shop Now"}
+                        <svg
+                          width="15"
+                          height="13"
+                          viewBox="0 0 15 13"
+                          fill="none"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <path
+                            d="M13.9998 6.19656L1 6.19656"
+                            stroke="currentColor"
+                            strokeWidth="1.5"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          />
+                          <path
+                            d="M8.75674 0.975394L14 6.19613L8.75674 11.4177"
+                            stroke="currentColor"
+                            strokeWidth="1.5"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          />
                         </svg>
                       </a>
                     </div>
@@ -610,82 +526,19 @@ export default function HomeClient({ products, storeData }: Props) {
           </div>
         </section>
 
-        {/* DEAL OF THE DAY */}
-        <section className="tp-deal-area pt-50 pb-50" style={{ backgroundColor: "#F3F3F3" }}>
-          <div className="container">
-            <div className="row align-items-center mb-40">
-              <div className="col-xl-6 col-lg-5 col-md-6">
-                <div className="tp-section-title-wrapper d-flex align-items-center">
-                  <h3 className="section-title tp-section-title mb-0" style={{ marginRight: "30px" }}>
-                    Deal of The Day
-                  </h3>
-                  <div className="tp-product-countdown-inner">
-                    <ul className="d-flex align-items-center mb-0 pl-0" style={{ listStyle: "none" }}>
-                      {[
-                        { value: timeLeft.days, label: "Days" },
-                        { value: timeLeft.hours, label: "Hrs" },
-                        { value: timeLeft.minutes, label: "Mins" },
-                        { value: timeLeft.seconds, label: "Secs" },
-                      ].map((t) => (
-                        <li key={t.label} style={{ marginRight: "5px", backgroundColor: "#fff", border: "1px solid #ddd", borderRadius: "5px", width: "50px", height: "50px", textAlign: "center", paddingTop: "8px" }}>
-                          <span style={{ fontSize: "18px", fontWeight: "bold", display: "block", color: "#000", lineHeight: 1 }}>{t.value}</span>
-                          <span style={{ fontSize: "9px", textTransform: "uppercase", color: "#666" }}>{t.label}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                </div>
-              </div>
-              <div className="col-xl-6 col-lg-7 col-md-6 text-md-end mt-3 mt-md-0">
-                <a href="/products" className="tp-btn text-white py-2 px-4 rounded d-inline-block" style={{ backgroundColor: "var(--primary-color)" }}>
-                  View All Deals
-                </a>
-              </div>
-            </div>
+        <DealOfTheDaySection products={products} />
 
-            <div className="row">
-              {products.map((product) => (
-                <div className="col-xl-3 col-lg-4 col-sm-6 mb-30" key={product.id}>
-                  <div className="tp-product-item transition-3 p-relative fix m-img bg-white rounded shadow-sm" style={{ border: "1px solid #eee", overflow: "hidden" }}>
-                    <div className="tp-product-thumb p-relative fix">
-                      <a href={`/products/${product.slug}`}>
-                        <img src={product.images[0]} alt={product.name} className="w-100" />
-                      </a>
-                      <div className="tp-product-badge">
-                        <span style={{ backgroundColor: "var(--primary-color)" }}>Sale</span>
-                      </div>
-                      <div className="tp-product-add-cart-btn-large-wrapper">
-                        <button type="button" className="tp-product-add-cart-btn-large" data-product-id={product.id} data-product-name={product.name}>
-                          Select Options
-                        </button>
-                      </div>
-                    </div>
-                    <div className="tp-product-content p-3">
-                      <h3 className="text-truncate tp-product-title mb-2">
-                        <a href={`/products/${product.slug}`} title={product.name} style={{ color: "#000", fontWeight: 500 }}>
-                          {product.name}
-                        </a>
-                      </h3>
-                      <div className="tp-product-price-wrapper">
-                        <span className="tp-product-price new-price" style={{ color: "var(--primary-color)", fontWeight: "bold" }}>₹{product.price}</span>
-                        <span className="tp-product-price old-price" style={{ marginLeft: "10px", color: "#999" }}><del>₹{product.compareAtPrice}</del></span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* CERTIFICATION BANNER */}
         <div className="tp-product-banner-area pt-30 pb-30">
           <div className="container">
-            <img src="/storage/whatsapp-image-2026-05-21-at-44038-pm.webp" style={{ width: "100%" }} loading="lazy" alt="Certification" />
+            <img
+              src="/storage/whatsapp-image-2026-05-21-at-44038-pm.webp"
+              style={{ width: "100%" }}
+              loading="lazy"
+              alt="Certification"
+            />
           </div>
         </div>
 
-        {/* BLOG */}
         <section className="tp-blog-area pt-50 pb-50">
           <div className="container">
             <div className="row align-items-center mb-40">
@@ -706,29 +559,40 @@ export default function HomeClient({ products, storeData }: Props) {
                         {
                           href: "/blog/the-real-stories-of-crushing-fatigue-with-zennova-pure-himalayan-shilajit",
                           img: "/storage/whatsapp-image-2026-05-21-at-43405-pm-1-420x270.webp",
-                          title: "The Real Stories of Crushing Fatigue with Zennova Pure Himalayan Shilajit",
+                          title:
+                            "The Real Stories of Crushing Fatigue with Zennova Pure Himalayan Shilajit",
                           date: "May 21, 2026",
-                          excerpt: "We have all been there. It is 3:00 PM, you are staring at your laptop screen, and your brain feels...",
+                          excerpt:
+                            "We have all been there. It is 3:00 PM, you are staring at your laptop screen, and your brain feels...",
                         },
                         {
                           href: "/blog/burn-fat-smarter-feel-stronger-every-day",
                           img: "/storage/whatsapp-image-2026-05-21-at-43458-pm-1-420x270.webp",
                           title: "Burn Fat Smarter, Feel Stronger Every Day",
                           date: "May 21, 2026",
-                          excerpt: "Are you struggling with stubborn belly fat, low energy levels, or uncontrollable cravings? You're not alone...",
+                          excerpt:
+                            "Are you struggling with stubborn belly fat, low energy levels, or uncontrollable cravings? You're not alone...",
                         },
                         {
                           href: "/blog/the-sleep-that-actually-makes-you-glow-why-zennova-sleepglow-is-the-transformation-youve-been-praying-for",
                           img: "/storage/whatsapp-image-2026-05-21-at-44059-pm-420x270.webp",
-                          title: "Why Zennova SLEEPGlow Is the Transformation You've Been Praying For",
+                          title:
+                            "Why Zennova SLEEPGlow Is the Transformation You've Been Praying For",
                           date: "May 21, 2026",
-                          excerpt: "What if I told you there's a missing piece to your wellness puzzle that doesn't involve a prescription pad?...",
+                          excerpt:
+                            "What if I told you there's a missing piece to your wellness puzzle that doesn't involve a prescription pad?...",
                         },
                       ].map((post) => (
                         <div className="tp-blog-item mb-30 swiper-slide" key={post.href}>
                           <div className="tp-blog-thumb p-relative fix">
                             <a href={post.href}>
-                              <img src="/storage/loader.png" data-bb-lazy="true" loading="lazy" data-src={post.img} alt={post.title} />
+                              <img
+                                src="/storage/loader.png"
+                                data-bb-lazy="true"
+                                loading="lazy"
+                                data-src={post.img}
+                                alt={post.title}
+                              />
                             </a>
                             <div className="tp-blog-meta tp-blog-meta-date">
                               <span>{post.date}</span>
@@ -736,7 +600,9 @@ export default function HomeClient({ products, storeData }: Props) {
                           </div>
                           <div className="tp-blog-content">
                             <h3 className="tp-blog-title text-truncate">
-                              <a href={post.href} title={post.title}>{post.title}</a>
+                              <a href={post.href} title={post.title}>
+                                {post.title}
+                              </a>
                             </h3>
                             <p>{post.excerpt}</p>
                           </div>
@@ -750,73 +616,7 @@ export default function HomeClient({ products, storeData }: Props) {
           </div>
         </section>
 
-        {/* TESTIMONIALS */}
-        <section className="tp-testimonial-area pt-30 pb-30">
-          <div className="container">
-            <div className="row">
-              <div className="col-xl-12">
-                <div className="tp-section-title-wrapper-3 mb-45 text-center">
-                  <h3 className="section-title tp-section-title-3">Customer Reviews</h3>
-                </div>
-              </div>
-            </div>
-            <div className="row">
-              <div className="col-xl-12">
-                <div className="tp-testimonial-slider-3">
-                  <div className="tp-testimoinal-slider-active-3 swiper-container">
-                    <div className="swiper-wrapper">
-                      {[
-                        { name: "Meraz", designation: "Software Engineer & Fitness Enthusiast", review: `"Main pichle 3 weeks se Zen Nova Green Fuel aur Shilajit use kar raha hoon. Honestly, jo afternoon fatigue hoti thi system pe baithte-baithte, wo ab bilkul chali gayi hai. Clean energy milti hai pure din bina kisi crash ke. Highly recommended for working professionals who hit the gym!"` },
-                        { name: "Priya Patel", designation: "Student", review: `"I was skeptical about Zennova Apple Cider Vinegar because of the harsh taste of other brands, but diluted in warm water, this one is actually smooth. Morning me empty stomach lene se bloating bahut kam hui hai and it really promotes healthy skin. Plus, it has the Mother of Vinegar which is awesome!"` },
-                        { name: "Neha Kapoor", designation: "Digital Marketing Lead", review: `"Work stress ki wajah se racing thoughts hote the aur neend nahi aati thi easily. But Zennova SLEEPGlow changed the game. 1 tablet before bed and I fall asleep so fast. Best part? Agli subah koi groggy feeling ya sir dard nahi hota, fresh feeling ke saath wake up refresh hotey hain!"` },
-                        { name: "Dr. Rohan Joshi", designation: "Consultant Physiotherapist", review: `"Hamari modern busy diet me micro-nutrients miss ho jaate hain. I personally take Zennova Multivitamins daily. B-Complex, Vitamin D3, aur Zinc ka proper balance hai. Energy levels sustained rehte hain and immune system robust feel hota hai. Great foundational supplement."` },
-                        { name: "Rahul Verma", designation: "Sales Manager", review: `"Work stress aur target pressure ki wajah se stamina aur drive low chal rahi thi. Zennova UPLIFT X start kiya and within 2 weeks performance aur endurance me bohot difference aaya hai. Total value for money product!"` },
-                        { name: "Marcus Thorne", designation: "Financial Analyst", review: `"High-impact training used to leave my knees and lower back feeling incredibly tight for days. Zennova Pain Relief has drastically shortened my recovery time. The natural anti-inflammatory benefits are real, and my joint mobility feels fluid again."` },
-                      ].map((t) => (
-                        <div className="tp-testimonial-item-3 swiper-slide grey-bg-7 p-relative z-index-1" key={t.name}>
-                          <div className="tp-testimonial-content-3">
-                            <p>{t.review}</p>
-                          </div>
-                          <div className="tp-testimonial-user-wrapper-3 d-flex">
-                            <div className="tp-testimonial-user-3 d-flex align-items-center">
-                              <div className="tp-testimonial-user-3-info tp-testimonial-user-translate">
-                                <h3 className="tp-testimonial-user-3-title">{t.name}</h3>
-                                <span className="tp-testimonial-3-designation">{t.designation}</span>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                  <div className="tp-testimoinal-slider-dot-3 tp-swiper-dot-border text-center mt-50"></div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* COMING SOON */}
-        <section className="section container box-coming-soon pt-100 pb-100 overflow-hidden">
-          <div className="row align-items-center">
-            <div className="col-lg-5 mb-30">
-              <h3 className="color-brand-2">Coming Soon</h3>
-              <div className="input-group mb-3">
-                <input className="form-control" placeholder="Enter Your Email" type="email" />
-                <button className="btn btn-primary" type="button">Subscribe</button>
-              </div>
-              <div className="tp-footer-social gap-2">
-                <a href="https://www.facebook.com" title="Facebook" target="_blank">Facebook</a>
-                <a href="https://x.com" title="X" target="_blank">X</a>
-                <a href="https://www.youtube.com" title="YouTube" target="_blank">YouTube</a>
-              </div>
-            </div>
-            <div className="col-lg-7 mb-30">
-              <img src="/storage/loader.png" data-bb-lazy="true" className="coming-soon-image" loading="lazy" data-src="/storage/whatsapp-image-2026-05-30-at-13550-pm-removebg-preview.webp" alt="Coming Soon" />
-            </div>
-          </div>
-        </section>
-
+        <CustomerReviewsSection testimonials={TESTIMONIALS} />
       </main>
     </>
   );
