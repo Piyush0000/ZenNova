@@ -26,6 +26,7 @@ export default async function CataloguePage() {
     <ShopClient
       products={products}
       categories={categories}
+      storeData={frontend}
     />
   );
 }
