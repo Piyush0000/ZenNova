@@ -13,7 +13,7 @@ const BLOG_ARTICLES: Record<string, {
   "the-real-stories-of-crushing-fatigue-with-zennova-pure-himalayan-shilajit": {
     title: "The Real Stories of Crushing Fatigue with Zennova Pure Himalayan Shilajit",
     date: "May 21, 2026",
-    image: "/storage/whatsapp-image-2026-05-21-at-43405-pm-1-420x270.webp",
+    image: "/storage/zennova-blog-shilajit.png",
     category: "Vitality",
     author: "ZenNova Health Team",
     content: [
@@ -27,7 +27,7 @@ const BLOG_ARTICLES: Record<string, {
   "burn-fat-smarter-feel-stronger-every-day": {
     title: "Burn Fat Smarter, Feel Stronger Every Day",
     date: "May 21, 2026",
-    image: "/storage/whatsapp-image-2026-05-21-at-43458-pm-1-420x270.webp",
+    image: "/storage/zennova-blog-fat-burner.png",
     category: "Weight Loss",
     author: "ZenNova Fitness Team",
     content: [
@@ -41,7 +41,7 @@ const BLOG_ARTICLES: Record<string, {
   "the-sleep-that-actually-makes-you-glow-why-zennova-sleepglow-is-the-transformation-youve-been-praying-for": {
     title: "Why Zennova SLEEPGlow Is the Transformation You've Been Praying For",
     date: "May 21, 2026",
-    image: "/storage/whatsapp-image-2026-05-21-at-44059-pm-420x270.webp",
+    image: "/storage/zennova-blog-sleepglow.png",
     category: "Sleep & Beauty",
     author: "ZenNova Wellness Team",
     content: [
