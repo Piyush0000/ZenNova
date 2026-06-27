@@ -6,6 +6,7 @@ import Header from "./components/Header";
 import Footer from "./components/Footer";
 import Modals from "./components/Modals";
 import ClientLoader from "./ClientLoader";
+import AnnouncementBar from "@/components/AnnouncementBar";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -23,9 +24,11 @@ export const viewport: Viewport = {
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   let primaryColor = "#f37324";
+  let announcementConfig = null;
   try {
     const data = await getFrontend();
     primaryColor = data?.customization?.brandColors?.primary ?? primaryColor;
+    announcementConfig = data?.customization?.announcementBar ?? null;
   } catch {}
   return (
     <html lang="en">
@@ -92,6 +95,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
 
       <body id="page-home">
         <ClientLoader />
+        <AnnouncementBar initialConfig={announcementConfig} />
         <Header />
         {children}
         <Footer />

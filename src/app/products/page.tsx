@@ -1,16 +1,29 @@
 import React from "react";
-import { getProducts } from "@/lib/api";
+import { getFrontend, getProducts } from "@/lib/api";
 import ShopClient from "./ShopClient";
 
 export default async function Shop() {
-  const products = await getProducts();
+  const [products, storeData] = await Promise.all([
+    getProducts(),
+    getFrontend().catch(() => null),
+  ]);
 
-  const categoryCounts: Record<string, number> = { All: products.length };
-  products.forEach((p: any) => {
+  const categoryCounts: Record<string, number> = {};
+  products.forEach((p: { category?: string }) => {
     const cat = p.category || "Other";
     categoryCounts[cat] = (categoryCounts[cat] || 0) + 1;
   });
-  const categories = Object.entries(categoryCounts).map(([name, count]) => ({ name, count }));
 
-  return <ShopClient products={products} categories={categories} />;
+  const categories = Object.entries(categoryCounts).map(([name, count]) => ({
+    name,
+    count,
+  }));
+
+  return (
+    <ShopClient
+      products={products}
+      categories={categories}
+      storeData={storeData}
+    />
+  );
 }

@@ -7,21 +7,6 @@ import ProductCard from "./components/products/ProductCard";
 import DealOfTheDaySection from "./components/products/DealOfTheDaySection";
 import CustomerReviewsSection from "./components/products/CustomerReviewsSection";
 
-const DEFAULT_TICKER_ITEMS = [
-  {
-    text: "🔥 FLASH SALE: 20% OFF all electronics! Use code: FLASH20",
-    link: "/products",
-  },
-  {
-    text: "🚚 Free shipping on all orders over $50! Shop Now",
-    link: "/products",
-  },
-  {
-    text: "🎁 Buy 1 Get 1 Free on selected summer apparel!",
-    link: "/products",
-  },
-];
-
 type Props = {
   products: Product[];
   storeData: any;
@@ -67,11 +52,6 @@ const TESTIMONIALS = [
 ];
 
 export default function HomeClient({ products, storeData }: Props) {
-  const tickerItems = useMemo(() => {
-    const fromApi = storeData?.customization?.announcementBar?.announcements ?? [];
-    return fromApi.length > 0 ? fromApi : DEFAULT_TICKER_ITEMS;
-  }, [storeData]);
-
   const uniqueCategories = useMemo(
     () => [...new Set((storeData?.categories ?? []) as string[])],
     [storeData?.categories]
@@ -310,21 +290,6 @@ export default function HomeClient({ products, storeData }: Props) {
             <div className="tp-slider-dot tp-swiper-dot" />
           </div>
         </section>
-
-        <div className="ecommerce-ticker-wrap">
-          <div className="ecommerce-ticker">
-            {tickerItems.map((a: any, i: number) => (
-              <div className="ticker-item" key={i}>
-                <a href={a.link ?? "#"}>{a.text}</a>
-              </div>
-            ))}
-            {tickerItems.map((a: any, i: number) => (
-              <div className="ticker-item" key={`dup-${i}`} aria-hidden="true">
-                <a href={a.link ?? "#"}>{a.text}</a>
-              </div>
-            ))}
-          </div>
-        </div>
 
         <section className="tp-category-area pt-30 pb-30">
           <div className="container">

@@ -16,6 +16,8 @@ export type ProductCardProps = {
   className?: string;
   reviewCount?: number;
   ratingPercent?: number;
+  shopLayout?: boolean;
+  shopListView?: boolean;
 };
 
 export default function ProductCard({
@@ -26,14 +28,51 @@ export default function ProductCard({
   className = "",
   reviewCount = 0,
   ratingPercent = 0,
+  shopLayout = false,
+  shopListView = false,
 }: ProductCardProps) {
   const badges =
     badgeOverride === undefined ? getProductBadges(product) : badgeOverride ? [badgeOverride] : [];
   const image = product.images?.[0];
+  const cartLabel =
+    product.variants && product.variants.length > 0 ? "Select Options" : "Add To Cart";
+
+  const cardClass = [
+    "tp-product-item",
+    "zn-product-card",
+    "transition-3",
+    "p-relative",
+    "fix",
+    "m-img",
+    shopListView ? "zn-shop-list-card" : "h-100",
+    showCountdown ? "zn-has-countdown" : "",
+    shopLayout && !shopListView ? "zn-shop-product-card" : "",
+    className,
+  ]
+    .filter(Boolean)
+    .join(" ");
+
+  const cardClass = [
+    "tp-product-item",
+    "zn-product-card",
+    "transition-3",
+    "p-relative",
+    "fix",
+    "m-img",
+    shopListView ? "zn-shop-list-card" : "h-100",
+    shopLayout && !shopListView ? "zn-shop-product-card" : "",
+    className,
+  ]
+    .filter(Boolean)
+    .join(" ");
 
   return (
-    <div className={`tp-product-item zn-product-card transition-3 p-relative fix m-img h-100 ${showCountdown ? "zn-has-countdown" : ""} ${className}`.trim()}>
-      <div className="tp-product-thumb p-relative fix m-img zn-product-card__thumb">
+    <div className={cardClass}>
+      <div
+        className={`tp-product-thumb p-relative fix m-img zn-product-card__thumb ${
+          shopListView ? "zn-shop-list-card__thumb" : ""
+        }`}
+      >
         <a href={`/products/${product.slug}`} title={product.name}>
           <img
             src={image}
@@ -56,8 +95,12 @@ export default function ProductCard({
         <ProductActionButtons product={product} />
       </div>
 
-      <div className="tp-product-content zn-product-card__content">
-        <h3 className="text-truncate tp-product-title">
+      <div
+        className={`tp-product-content zn-product-card__content ${
+          shopListView ? "zn-shop-list-card__content" : ""
+        }`}
+      >
+        <h3 className={`tp-product-title ${shopLayout ? "zn-shop-product-card__title" : "text-truncate"}`}>
           <a href={`/products/${product.slug}`} title={product.name}>
             {product.name}
           </a>
@@ -67,6 +110,7 @@ export default function ProductCard({
           slug={product.slug}
           reviewCount={reviewCount}
           ratingPercent={ratingPercent}
+          shopStars={false}
         />
 
         <div className="tp-product-price-wrapper">
@@ -83,6 +127,16 @@ export default function ProductCard({
             </span>
           )}
         </div>
+
+        {shopLayout && shopListView && (
+          <div className="zn-shop-list-card__cart">
+<<<<<<< Updated upstream
+            <AddToCartButton product={product} variant="static" label={cartLabel} />
+=======
+            <AddToCartButton product={product} variant="static" />
+>>>>>>> Stashed changes
+          </div>
+        )}
       </div>
 
       {showCountdown && countdownDate && (
@@ -91,13 +145,25 @@ export default function ProductCard({
         </div>
       )}
 
-      <div className="zn-product-card__footer">
-        <AddToCartButton
-          product={product}
-          variant="static"
-          label={product.variants && product.variants.length > 0 ? "Select Options" : "Add To Cart"}
-        />
-      </div>
+      {shopLayout && !shopListView && (
+        <div className="zn-product-card__footer zn-shop-product-card__footer">
+<<<<<<< Updated upstream
+          <AddToCartButton product={product} variant="static" label={cartLabel} />
+=======
+          <AddToCartButton product={product} variant="static" />
+>>>>>>> Stashed changes
+        </div>
+      )}
+
+      {!shopLayout && (
+        <div className="zn-product-card__footer">
+<<<<<<< Updated upstream
+          <AddToCartButton product={product} variant="static" label={cartLabel} />
+=======
+          <AddToCartButton product={product} variant="static" />
+>>>>>>> Stashed changes
+        </div>
+      )}
     </div>
   );
 }
