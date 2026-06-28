@@ -154,6 +154,13 @@ export default function ShopClient({
     setPriceRange([priceBounds.min, priceBounds.max]);
   }, [priceBounds.min, priceBounds.max]);
 
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const params = new URLSearchParams(window.location.search);
+    const q = params.get("q");
+    if (q) setSearchQuery(q);
+  }, []);
+
   const displayCategories = useMemo<CategoryItem[]>(() => {
     const allItem: CategoryItem = {
       name: "All Supplements",

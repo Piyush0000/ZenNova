@@ -9,6 +9,7 @@ import ClientLoader from "./ClientLoader";
 import AnnouncementBar from "@/components/AnnouncementBar";
 import { CartProvider } from "@/components/Cart/CartProvider";
 import CartBridge from "@/components/Cart/CartBridge";
+import SearchBridge from "@/components/Search/SearchBridge";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -107,6 +108,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <Footer />
         <Modals />
         <CartBridge />
+        <SearchBridge />
         </CartProvider>
 
         {/* Client-side JavaScript assets loaded in correct sequence */}

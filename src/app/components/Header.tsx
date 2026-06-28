@@ -111,7 +111,7 @@ export default async function Header() {
                 </div>
                 <div className="col">
                     <div className="text-center tp-mobile-item">
-                        <button className="tp-mobile-item-btn tp-search-open-btn">
+                        <button type="button" className="tp-mobile-item-btn tp-search-open-btn" aria-label="Open search">
                             <svg className="icon  svg-icon-ti-ti-search"
   xmlns="http://www.w3.org/2000/svg"
   width="24"
@@ -204,9 +204,9 @@ export default async function Header() {
                 <div className="col-xl-12">
                     <div className="tp-search-form">
                         <div className="mb-20 text-center tp-search-close">
-                            <button className="tp-search-close-btn"></button>
+                            <button type="button" className="tp-search-close-btn" aria-label="Close search"></button>
                         </div>
-                        <form role="search" action="/products" data-ajax-url="/ajax/search-products" method="GET" className="bb-form-quick-search" id="bb-form-quick-search">
+                        <form role="search" action="/products" data-ajax-url="/ajax/search-products" method="GET" className="bb-form-quick-search" id="bb-form-quick-search-mobile">
                             <div className="mb-10 tp-search-input">
                                 <input type="search" name="q" placeholder="Search for Products..." autoComplete="off" />
                                 <button type="submit" title="Search"><svg className="icon  svg-icon-ti-ti-search"
@@ -279,11 +279,11 @@ export default async function Header() {
                                   </h5>
                                   <p style={{ fontSize: "12px", color: "#aaa", margin: "4px 0" }}>{(item.items || []).map((p: any) => p.name).join(" · ")}</p>
                                   <div className="cartmini__price-wrapper">
-                                     <span className="cartmini__price">₹{parseFloat((item.payable || 0) as any).toLocaleString("en-IN")}</span>
-                                     {(item.subtotal || 0) > (item.payable || 0) && (
-                                       <del style={{ fontSize: "12px", color: "#666", marginLeft: "8px" }}>₹{parseFloat((item.subtotal || 0) as any).toLocaleString("en-IN")}</del>
-                                     )}
-                                   </div>
+                                    <span className="cartmini__price">₹{parseFloat(item.payable as any).toLocaleString("en-IN")}</span>
+                                    {item.subtotal != null && item.payable != null && item.subtotal > item.payable && (
+                                      <del style={{ fontSize: "12px", color: "#666", marginLeft: "8px" }}>₹{parseFloat(item.subtotal as any).toLocaleString("en-IN")}</del>
+                                    )}
+                                  </div>
                                 </div>
                                 <a href={`/ajax/cart-content?remove_index=${index}`} className="cartmini__del" data-bb-toggle="remove-from-cart">
                                   <svg className="icon svg-icon-ti-ti-x" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -386,7 +386,7 @@ export default async function Header() {
                         </div>
 
                         <div className="col-xl-6 col-lg-7 d-none d-lg-block pl-70">
-                            <form role="search" action="/products" data-ajax-url="/ajax/search-products" method="GET" className="bb-form-quick-search tp-header-search" id="bb-form-quick-search">
+                            <form role="search" action="/products" data-ajax-url="/ajax/search-products" method="GET" className="bb-form-quick-search tp-header-search" id="bb-form-quick-search-desktop">
                                 <div className="tp-header-search-wrapper d-flex align-items-center">
                                     <div className="tp-header-search-box">
                                         <input type="search" name="q" placeholder="Search for Products..." autoComplete="off" />
