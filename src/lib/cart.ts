@@ -4,12 +4,27 @@ import type { Product } from "@/types/product";
 export type CartItem = {
   productId: string;
   quantity: number;
+  type?: "PRODUCT" | "BUNDLE";
+  bundleId?: string;
+  productIds?: string[];
+  title?: string;
+  payable?: number;
+  subtotal?: number;
+  savings?: number;
+  items?: Array<{ id: string; name: string; price: number; quantity: number }>;
 };
 
 export type CartDetailItem = {
-  product: Product;
+  product?: Product;
   quantity: number;
   subtotal: number;
+  type?: "PRODUCT" | "BUNDLE";
+  bundleId?: string;
+  title?: string;
+  payable?: number;
+  savings?: number;
+  productIds?: string[];
+  items?: Array<{ id: string; name: string; price: number; quantity: number }>;
 };
 
 export type CartDetails = {
@@ -56,6 +71,23 @@ export function getCartDetailsFromCart(cart: CartItem[], products: Product[]): C
   let subtotal = 0;
 
   for (const item of cart) {
+    if (item.type === "BUNDLE") {
+      items.push({
+        type: "BUNDLE",
+        bundleId: item.bundleId || "",
+        title: item.title || "",
+        payable: item.payable || 0,
+        subtotal: item.subtotal || 0,
+        savings: item.savings || 0,
+        productIds: item.productIds || [],
+        items: item.items || [],
+        quantity: item.quantity || 1,
+      } as any);
+      count += 1;
+      subtotal += item.payable || 0;
+      continue;
+    }
+
     const product = products.find((p) => p.id === item.productId);
     if (!product || !product.isActive) {
       continue;

@@ -147,17 +147,35 @@ export function useBundle(bundle: BundleOffer) {
 
     try {
       setAdding(true);
-      const result = await addBundleToCart(bundle.id, selectedIds, quantities);
-      if (!result.success) {
-        throw new Error(result.message || "Could not add bundle to cart");
+      const res = await fetch("/ajax/cart-content", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "add_bundle",
+          bundleId: bundle.id,
+          productIds: selectedIds,
+          title: bundle.title,
+          payable: displayPrice,
+          subtotal: strikePrice || displayPrice,
+          savings: displaySavings,
+          items: selectedProducts.map((p) => ({
+            id: p.id,
+            name: p.name,
+            price: p.price,
+            quantity: quantities[p.id] || 1,
+          })),
+        }),
+      });
+
+      if (!res.ok) {
+        throw new Error("Failed to add bundle to cart");
       }
 
-      const existing =
-        typeof window !== "undefined"
-          ? JSON.parse(localStorage.getItem("orbit_cart") || "[]")
-          : [];
-      const nextCart = Array.isArray(existing) ? [...existing, result.cartItem] : [result.cartItem];
-      localStorage.setItem("orbit_cart", JSON.stringify(nextCart));
+      const json = await res.json();
+      if (json.error) {
+        throw new Error(json.message || "Failed to add bundle to cart");
+      }
+
       window.dispatchEvent(new CustomEvent("orbit:cart-updated"));
 
       setQuantities({});
@@ -167,7 +185,18 @@ export function useBundle(bundle: BundleOffer) {
     } finally {
       setAdding(false);
     }
-  }, [bundle.id, isComplete, remaining, selectedIds, quantities]);
+  }, [
+    bundle.id,
+    bundle.title,
+    isComplete,
+    remaining,
+    selectedIds,
+    quantities,
+    displayPrice,
+    strikePrice,
+    displaySavings,
+    selectedProducts,
+  ]);
 
   return {
     bundleProducts,

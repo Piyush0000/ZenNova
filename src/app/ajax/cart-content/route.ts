@@ -17,7 +17,31 @@ function renderCartContentHtml(cartDetails: any) {
   }
 
   const itemsHtml = cartDetails.items
-    .map((item: any) => {
+    .map((item: any, index: number) => {
+      if (item.type === "BUNDLE") {
+        return `
+        <div class="cartmini__widget-item">
+          <div class="cartmini__content" style="padding-left: 0;">
+            <span class="zn-cart-page__badge" style="background: #f37324; color: #fff; padding: 2px 6px; font-size: 10px; border-radius: 4px; font-weight: bold; text-transform: uppercase;">Combo Offer</span>
+            <h5 class="cartmini__title mt-10">
+              <a href="/bundle">${item.title}</a>
+            </h5>
+            <p style="font-size: 12px; color: #aaa; margin: 4px 0;">${item.items.map((p: any) => p.name).join(" · ")}</p>
+            <div class="cartmini__price-wrapper">
+              <span class="cartmini__price">₹${parseFloat(item.payable).toLocaleString("en-IN")}</span>
+              ${item.subtotal > item.payable ? `<del style="font-size: 12px; color: #666; margin-left: 8px;">₹${parseFloat(item.subtotal).toLocaleString("en-IN")}</del>` : ""}
+            </div>
+          </div>
+          <a href="/ajax/cart-content?remove_index=${index}" class="cartmini__del" data-bb-toggle="remove-from-cart">
+            <svg class="icon svg-icon-ti-ti-x" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+          </a>
+        </div>
+        `;
+      }
+
       const imgUrl = item.product.images?.[0] || "/storage/logot.webp";
       return `
       <div class="cartmini__widget-item">
@@ -45,7 +69,7 @@ function renderCartContentHtml(cartDetails: any) {
             </form>
           </div>
         </div>
-        <a href="/ajax/cart-content?remove=${item.product.id}" class="cartmini__del" data-bb-toggle="remove-from-cart">
+        <a href="/ajax/cart-content?remove_index=${index}" class="cartmini__del" data-bb-toggle="remove-from-cart">
           <svg class="icon svg-icon-ti-ti-x" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <line x1="18" y1="6" x2="6" y2="18"></line>
             <line x1="6" y1="6" x2="18" y2="18"></line>
@@ -116,6 +140,7 @@ export async function GET(request: Request) {
   const cookieStore = await cookies();
   const url = new URL(request.url);
   const removeId = url.searchParams.get("remove");
+  const removeIndexStr = url.searchParams.get("remove_index");
   const clear = url.searchParams.get("clear");
 
   const cart = getCart(cookieStore);
@@ -129,7 +154,11 @@ export async function GET(request: Request) {
   let updatedCart = [...cart];
   let msg = "Cart loaded successfully";
 
-  if (removeId) {
+  if (removeIndexStr !== null) {
+    const idx = parseInt(removeIndexStr, 10);
+    updatedCart = cart.filter((_, i) => i !== idx);
+    msg = "Item removed from cart.";
+  } else if (removeId) {
     updatedCart = cart.filter((item) => item.productId !== removeId);
     msg = "Item removed from cart.";
   } else if (clear === "true") {
@@ -194,6 +223,7 @@ export async function POST(request: Request) {
   let qty = 1;
   let action = "add";
   let isCheckout = false;
+  let jsonBody: any = null;
 
   const contentType = request.headers.get("content-type") || "";
 
@@ -207,6 +237,7 @@ export async function POST(request: Request) {
       isCheckout = formData.get("checkout") === "1";
     } else {
       const json = await request.json();
+      jsonBody = json;
       productId = json.id || "";
       qty = typeof json.qty !== "undefined" ? parseInt(json.qty, 10) : 1;
       action = json.cart_action || json.action || "add";
@@ -214,6 +245,52 @@ export async function POST(request: Request) {
     }
   } catch (e) {
     console.error("Failed to parse POST body in cart route:", e);
+  }
+
+  if (action === "add_bundle") {
+    if (!jsonBody || !jsonBody.bundleId) {
+      return NextResponse.json({
+        error: true,
+        message: "Bundle payload is required.",
+        data: {},
+      });
+    }
+
+    const newBundleItem = {
+      productId: "bundle-" + crypto.randomUUID(),
+      quantity: 1,
+      type: "BUNDLE" as const,
+      bundleId: jsonBody.bundleId,
+      productIds: jsonBody.productIds,
+      title: jsonBody.title,
+      payable: jsonBody.payable,
+      subtotal: jsonBody.subtotal,
+      savings: jsonBody.savings,
+      items: jsonBody.items
+    };
+
+    const updatedCart = [...cart, newBundleItem];
+    const details = getCartDetailsFromCart(updatedCart, products);
+
+    const response = NextResponse.json({
+      error: false,
+      message: "Bundle added to cart successfully.",
+      data: {
+        count: details.count,
+        content: renderCartContentHtml(details),
+        footer: renderCartFooterHtml(details),
+        cart_mini: renderCartMiniHtml(details),
+      },
+    });
+
+    response.cookies.set(COOKIE_NAME, JSON.stringify(updatedCart), {
+      path: "/",
+      maxAge: 60 * 60 * 24 * 7,
+      httpOnly: true,
+      sameSite: "lax",
+    });
+    response.headers.set("Cache-Control", "no-store, max-age=0, must-revalidate");
+    return response;
   }
 
   if (!productId) {

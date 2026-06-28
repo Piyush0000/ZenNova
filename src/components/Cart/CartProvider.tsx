@@ -7,8 +7,6 @@ import {
   getCartLineCount,
   getCartPayableTotal,
   getCartSubtotal,
-  readCartFromStorage,
-  writeCartToStorage,
 } from "@/types/cart";
 
 type CartContextValue = {
@@ -27,45 +25,118 @@ const CartContext = createContext<CartContextValue | null>(null);
 export function CartProvider({ children }: { children: React.ReactNode }) {
   const [cart, setCart] = useState<CartItem[]>([]);
 
-  const refreshCart = useCallback(() => {
-    setCart(readCartFromStorage());
+  const refreshCart = useCallback(async () => {
+    try {
+      const res = await fetch("/ajax/cart-content?json=true");
+      if (!res.ok) return;
+      const data = await res.json();
+      if (data && data.details && Array.isArray(data.details.items)) {
+        const mapped: CartItem[] = data.details.items.map((item: any) => {
+          if (item.type === "BUNDLE") {
+            return {
+              type: "BUNDLE",
+              bundleId: item.bundleId,
+              title: item.title,
+              productIds: item.productIds || [],
+              items: (item.items || []).map((p: any) => ({
+                id: p.id,
+                name: p.name,
+                slug: p.slug || "",
+                price: parseFloat(p.price) || 0,
+                images: p.images || []
+              })),
+              payable: parseFloat(item.payable) || 0,
+              subtotal: parseFloat(item.subtotal) || 0,
+              savings: parseFloat(item.savings) || 0,
+              bundlePrice: parseFloat(item.payable) || 0,
+              requiredQuantity: item.productIds?.length || 0,
+            };
+          }
+          return {
+            type: "PRODUCT",
+            productId: item.product.id,
+            name: item.product.name,
+            slug: item.product.slug,
+            price: parseFloat(item.product.price) || 0,
+            quantity: item.quantity,
+            images: item.product.images || []
+          };
+        });
+        setCart(mapped);
+      }
+    } catch (e) {
+      console.error("Failed to sync cart cookie with state:", e);
+    }
   }, []);
 
   useEffect(() => {
     refreshCart();
-    const onUpdate = () => refreshCart();
-    window.addEventListener("orbit:cart-updated", onUpdate);
-    window.addEventListener("storage", onUpdate);
+
+    const handleSync = () => {
+      refreshCart();
+    };
+
+    window.addEventListener("orbit:cart-updated", handleSync);
+    window.addEventListener("storage", handleSync);
+    document.addEventListener("ecommerce.cart.added", handleSync);
+    document.addEventListener("ecommerce.cart.removed", handleSync);
+
     return () => {
-      window.removeEventListener("orbit:cart-updated", onUpdate);
-      window.removeEventListener("storage", onUpdate);
+      window.removeEventListener("orbit:cart-updated", handleSync);
+      window.removeEventListener("storage", handleSync);
+      document.removeEventListener("ecommerce.cart.added", handleSync);
+      document.removeEventListener("ecommerce.cart.removed", handleSync);
     };
   }, [refreshCart]);
 
-  const persist = useCallback((next: CartItem[]) => {
-    writeCartToStorage(next);
-    setCart(next);
-  }, []);
-
   const addItem = useCallback(
-    (item: CartItem) => {
-      const next = [...readCartFromStorage(), item];
-      persist(next);
+    async (item: CartItem) => {
+      if (item.type === "PRODUCT") {
+        try {
+          const res = await fetch("/ajax/cart-content", {
+            method: "POST",
+            headers: { "Content-Type": "application/x-www-form-urlencoded" },
+            body: new URLSearchParams({
+              id: item.productId,
+              qty: String(item.quantity),
+              cart_action: "add"
+            })
+          });
+          if (res.ok) {
+            refreshCart();
+          }
+        } catch (e) {
+          console.error(e);
+        }
+      }
     },
-    [persist]
+    [refreshCart]
   );
 
   const removeItem = useCallback(
-    (index: number) => {
-      const next = readCartFromStorage().filter((_, i) => i !== index);
-      persist(next);
+    async (index: number) => {
+      try {
+        const res = await fetch(`/ajax/cart-content?remove_index=${index}`);
+        if (res.ok) {
+          refreshCart();
+        }
+      } catch (e) {
+        console.error(e);
+      }
     },
-    [persist]
+    [refreshCart]
   );
 
-  const clearCart = useCallback(() => {
-    persist([]);
-  }, [persist]);
+  const clearCart = useCallback(async () => {
+    try {
+      const res = await fetch("/ajax/cart-content?clear=true");
+      if (res.ok) {
+        setCart([]);
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  }, []);
 
   const value = useMemo(
     () => ({
@@ -89,5 +160,3 @@ export function useCartContext() {
   if (!ctx) throw new Error("useCartContext must be used within CartProvider");
   return ctx;
 }
-
-export type { BundleCartItem, CartItem };

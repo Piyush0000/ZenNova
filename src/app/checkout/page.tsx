@@ -1,296 +1,1010 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useCartContext } from "@/components/Cart/CartProvider";
+import { isBundleItem } from "@/types/cart";
+import { createStoreOrder } from "@/lib/api";
+import { formatPrice } from "@/app/components/products/productUtils";
+import { sendOtp, verifyOtp, createSession, validateSession } from "@/actions/otp-actions";
+import { initiatePayUPayment } from "@/actions/payment-actions";
+import "./checkout.css";
 
-type CartDetailItem = {
-  product: {
-    id: string;
-    name: string;
-    price: string;
-    slug: string;
-    images: string[];
-  };
-  quantity: number;
-  subtotal: number;
-};
+// ── CUSTOM INLINE SVG ICONS ──
+const PhoneIcon = () => (
+  <svg className="icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
+  </svg>
+);
+
+const CheckCircleIcon = ({ size = 24, className = "" }) => (
+  <svg className={className} width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+    <polyline points="22 4 12 14.01 9 11.01" />
+  </svg>
+);
+
+const TruckIcon = () => (
+  <svg className="icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <rect x="1" y="3" width="15" height="13" />
+    <polygon points="16 8 20 8 23 11 23 16 16 16 16 8" />
+    <circle cx="5.5" cy="18.5" r="2.5" />
+    <circle cx="18.5" cy="18.5" r="2.5" />
+  </svg>
+);
+
+const ChevronRightIcon = ({ size = 16 }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <polyline points="9 18 15 12 9 6" />
+  </svg>
+);
+
+const BanknoteIcon = ({ size = 24 }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <rect x="2" y="6" width="20" height="12" rx="2" />
+    <circle cx="12" cy="12" r="2" />
+    <path d="M6 12h.01M18 12h.01" />
+  </svg>
+);
+
+const CreditCardIcon = ({ size = 24 }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <rect x="1" y="4" width="22" height="16" rx="2" ry="2" />
+    <line x1="1" y1="10" x2="23" y2="10" />
+  </svg>
+);
+
+const ShoppingBagIcon = ({ size = 64, className = "" }) => (
+  <svg className={className} width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" />
+    <line x1="3" y1="6" x2="21" y2="6" />
+    <path d="M16 10a4 4 0 0 1-8 0" />
+  </svg>
+);
+
+const LockIcon = ({ size = 64, className = "" }) => (
+  <svg className={className} width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+    <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+  </svg>
+);
+
+const ShieldCheckIcon = ({ size = 64, className = "" }) => (
+  <svg className={className} width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+    <path d="M9 11l2 2 4-4" />
+  </svg>
+);
+
+const PhoneCallIcon = ({ size = 16, className = "" }) => (
+  <svg className={className} width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M15.05 5A5 5 0 0 1 19 8.95M15.05 1A9 9 0 0 1 23 8.94m-1 7.98v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
+  </svg>
+);
+
+const ArrowRightIcon = ({ size = 18 }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <line x1="5" y1="12" x2="19" y2="12" />
+    <polyline points="12 5 19 12 12 19" />
+  </svg>
+);
+
+const ChevronDownIcon = ({ size = 14, className = "" }) => (
+  <svg className={className} width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <polyline points="6 9 12 15 18 9" />
+  </svg>
+);
+
+const LoaderIcon = ({ className = "" }) => (
+  <svg className={`spinner ${className}`} width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round">
+    <circle cx="12" cy="12" r="10" stroke="rgba(255, 255, 255, 0.2)" />
+    <path d="M12 2a10 10 0 0 1 10 10" />
+  </svg>
+);
+
+const IndiaFlag = () => (
+  <svg width="20" height="14" viewBox="0 0 30 20" className="checkout__flag">
+    <rect width="30" height="20" fill="#FFF" />
+    <rect width="30" height="6.67" fill="#FF9933" />
+    <rect y="13.33" width="30" height="6.67" fill="#138808" />
+    <circle cx="15" cy="10" r="2" fill="#000080" />
+    <circle cx="15" cy="10" r="2" fill="none" stroke="#000080" strokeWidth="0.5" />
+    <circle cx="15" cy="10" r="0.4" fill="#000080" />
+  </svg>
+);
+
+type Step = "identify" | "verify" | "details" | "payment" | "success";
+
+const indianStates = [
+  "Andhra Pradesh", "Arunachal Pradesh", "Assam", "Bihar", "Chhattisgarh",
+  "Goa", "Gujarat", "Haryana", "Himachal Pradesh", "Jharkhand", "Karnataka",
+  "Kerala", "Madhya Pradesh", "Maharashtra", "Manipur", "Meghalaya",
+  "Mizoram", "Nagaland", "Odisha", "Punjab", "Rajasthan", "Sikkim",
+  "Tamil Nadu", "Telangana", "Tripura", "Uttar Pradesh", "Uttarakhand",
+  "West Bengal", "Delhi", "Jammu & Kashmir", "Ladakh", "Chandigarh",
+  "Andaman & Nicobar Islands", "Puducherry"
+];
 
 export default function CheckoutPage() {
-  const [cart, setCart] = useState<{ items: CartDetailItem[]; subtotal: number } | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [placed, setPlaced] = useState(false);
-  const [submitting, setSubmitting] = useState(false);
+  const router = useRouter();
+  const { cart, total, subtotal, clearCart } = useCartContext();
+
+  const [step, setStep] = useState<Step>("identify");
+  const [phone, setPhone] = useState("");
+  const [otp, setOtp] = useState(["", "", "", ""]);
+  const otpRefs = useRef<(HTMLInputElement | null)[]>([]);
+  const [resendTimer, setResendTimer] = useState(0);
+  const [otpLoading, setOtpLoading] = useState(false);
+
+  const [payUData, setPayUData] = useState<any>(null);
+  const launchAttemptedRef = useRef(false);
+
+  const [customerFirstName, setCustomerFirstName] = useState("");
+  const [customerLastName, setCustomerLastName] = useState("");
+  const [customerEmail, setCustomerEmail] = useState("");
   
-  const [form, setForm] = useState({
-    name: "",
-    email: "",
-    address: "",
+  const [savedAddresses, setSavedAddresses] = useState<any[]>([]);
+  const [selectedAddress, setSelectedAddress] = useState<any>(null);
+  const [showAddressForm, setShowAddressForm] = useState(false);
+  const [addressForm, setAddressForm] = useState({
+    type: "HOME",
+    flatHouse: "",
+    areaStreet: "",
     city: "",
-    zip: "",
-    phone: "",
+    state: "",
+    pincode: "",
+    isDefault: true,
   });
 
-  const fetchCart = async () => {
-    try {
-      const res = await fetch("/ajax/cart-content");
-      const json = await res.json();
-      if (!json.error) {
-        // We need to parse the items from the details helper on the server, but since GET /ajax/cart-content returns HTML,
-        // we can fetch the cart cookie directly or we can make the server route support returning JSON details if requested.
-        // Wait, let's fetch a special endpoint /ajax/cart-content?json=true!
-        // Yes, let's make our /ajax/cart-content GET endpoint return JSON if ?json=true is passed!
-        // That is extremely clever and makes it very easy to fetch cart details in JSON format.
-        const resJson = await fetch("/ajax/cart-content?json=true");
-        const dataJson = await resJson.json();
-        setCart(dataJson.details);
+  const [paymentMethod, setPaymentMethod] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+  const [placedOrderId, setPlacedOrderId] = useState<string | null>(null);
+  
+  const codFee = 40;
+
+  useEffect(() => {
+    if (resendTimer > 0) {
+      const interval = setInterval(() => setResendTimer((prev) => prev - 1), 1000);
+      return () => clearInterval(interval);
+    }
+  }, [resendTimer]);
+
+  // Handle auto-redirection to PayU Hosted Checkout
+  useEffect(() => {
+    if (!payUData) return;
+    if (launchAttemptedRef.current) return;
+    launchAttemptedRef.current = true;
+
+    console.log("Redirecting to PayU Hosted Checkout...", payUData);
+
+    const form = document.createElement("form");
+    form.method = "POST";
+
+    const isTestKey = payUData.key === "IWqFlM" || process.env.NEXT_PUBLIC_PAYU_SANDBOX === "true";
+    form.action = isTestKey 
+      ? "https://test.payu.in/_payment" 
+      : "https://secure.payu.in/_payment";
+
+    Object.entries(payUData).forEach(([key, val]) => {
+      const input = document.createElement("input");
+      input.type = "hidden";
+      input.name = key;
+      input.value = String(val);
+      form.appendChild(input);
+    });
+
+    document.body.appendChild(form);
+    form.submit();
+
+    setPayUData(null);
+    launchAttemptedRef.current = false;
+  }, [payUData]);
+
+  // Load saved addresses and session on mount, check URL status
+  useEffect(() => {
+    const saved = localStorage.getItem("zennova_saved_addresses");
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        setSavedAddresses(parsed);
+        if (parsed.length > 0) {
+          const def = parsed.find((a: any) => a.isDefault) || parsed[0];
+          setSelectedAddress(def);
+        }
+      } catch (e) {
+        console.error(e);
       }
-    } catch (e) {
-      console.error("Failed to load cart on checkout page:", e);
-    } finally {
-      setLoading(false);
+    }
+
+    const checkSession = async () => {
+      try {
+        const sessionResult = await validateSession();
+        if (sessionResult.valid && sessionResult.phone) {
+          setPhone(sessionResult.phone);
+          const savedFirstName = localStorage.getItem("zennova_checkout_first_name");
+          const savedLastName = localStorage.getItem("zennova_checkout_last_name");
+          const savedEmail = localStorage.getItem("zennova_checkout_email");
+
+          if (savedFirstName) setCustomerFirstName(savedFirstName);
+          if (savedLastName) setCustomerLastName(savedLastName);
+          if (savedEmail) setCustomerEmail(savedEmail);
+          
+          // Check for URL status parameters from PayU callback redirection
+          const urlParams = new URLSearchParams(window.location.search);
+          const statusParam = urlParams.get("status");
+          const orderIdParam = urlParams.get("orderId");
+          const reasonParam = urlParams.get("reason");
+
+          if (statusParam === "success" && orderIdParam) {
+            clearCart();
+            const cartBadges = document.querySelectorAll('[data-bb-value="cart-count"]');
+            cartBadges.forEach((badge) => {
+              badge.textContent = "0";
+            });
+            document.dispatchEvent(new CustomEvent("ecommerce.cart.removed", {
+              detail: { data: { count: 0 } }
+            }));
+
+            setPlacedOrderId(orderIdParam);
+            setStep("success");
+          } else if (statusParam === "failure") {
+            setError(reasonParam ? `Payment failed: ${reasonParam.replace(/_/g, " ")}` : "Payment was failed or cancelled. Please try again.");
+            setStep("payment");
+          } else {
+            setStep("details");
+          }
+        } else {
+          setStep("identify");
+        }
+      } catch (e) {
+        console.error("Failed to validate checkout session:", e);
+      }
+    };
+    checkSession();
+  }, []);
+
+  const handleOtpChange = (index: number, value: string) => {
+    const digit = value.replace(/\D/g, "").slice(-1);
+    const newOtp = [...otp];
+    newOtp[index] = digit;
+    setOtp(newOtp);
+
+    if (digit && index < 3) {
+      otpRefs.current[index + 1]?.focus();
     }
   };
 
-  useEffect(() => {
-    fetchCart();
-  }, []);
+  const handleOtpKeyDown = (index: number, e: React.KeyboardEvent) => {
+    if (e.key === "Backspace" && !otp[index] && index > 0) {
+      otpRefs.current[index - 1]?.focus();
+    }
+  };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setSubmitting(true);
+  const handleSendOtp = async () => {
+    if (!phone || phone.length < 10) {
+      setError("Please enter a valid 10-digit phone number");
+      return;
+    }
+    setOtpLoading(true);
+    setError(null);
+    setOtp(["", "", "", ""]);
+    
     try {
-      // Simulate API order processing
-      await new Promise((resolve) => setTimeout(resolve, 1500));
+      const result = await sendOtp({ phone });
+      if (result.success) {
+        setResendTimer(60);
+        setStep("verify");
+        setTimeout(() => otpRefs.current[0]?.focus(), 100);
+      } else {
+        setError(result.message || "Failed to send OTP code");
+      }
+    } catch (err) {
+      setError("Failed to send OTP due to network error");
+    } finally {
+      setOtpLoading(false);
+    }
+  };
+
+  const handleVerifyOtp = async () => {
+    const code = otp.join("");
+    if (code.length !== 4) {
+      setError("Please enter the 4-digit verification code");
+      return;
+    }
+    setOtpLoading(true);
+    setError(null);
+
+    try {
+      const result = await verifyOtp({ phone, code });
+      if (result.success) {
+        await createSession(phone);
+        localStorage.setItem("zennova_checkout_phone", phone);
+        setStep("details");
+      } else {
+        setError(result.message || "Verification code mismatch");
+      }
+    } catch (err) {
+      setError("Failed to verify OTP due to network error");
+    } finally {
+      setOtpLoading(false);
+    }
+  };
+
+  const handleSaveAddress = () => {
+    if (!addressForm.flatHouse || !addressForm.areaStreet || !addressForm.city || !addressForm.state || !addressForm.pincode) {
+      setError("Please fill in all address fields");
+      return;
+    }
+    setError(null);
+
+    const newAddress = {
+      id: crypto.randomUUID(),
+      ...addressForm,
+    };
+
+    let updated = [newAddress, ...savedAddresses];
+    if (addressForm.isDefault) {
+      updated = updated.map((a) => (a.id === newAddress.id ? a : { ...a, isDefault: false }));
+    }
+
+    setSavedAddresses(updated);
+    localStorage.setItem("zennova_saved_addresses", JSON.stringify(updated));
+    setSelectedAddress(newAddress);
+    setShowAddressForm(false);
+    
+    setAddressForm({
+      type: "HOME",
+      flatHouse: "",
+      areaStreet: "",
+      city: "",
+      state: "",
+      pincode: "",
+      isDefault: true,
+    });
+  };
+
+  const handleContinueToPayment = () => {
+    setError(null);
+    setFieldErrors({});
+
+    if (!customerFirstName.trim()) {
+      setFieldErrors((prev) => ({ ...prev, firstName: "First name is required" }));
+      return;
+    }
+    if (!customerEmail.trim() || !customerEmail.includes("@")) {
+      setFieldErrors((prev) => ({ ...prev, email: "Valid email is required" }));
+      return;
+    }
+    if (!selectedAddress) {
+      setError("Please select or add a delivery address");
+      return;
+    }
+
+    localStorage.setItem("zennova_checkout_first_name", customerFirstName);
+    localStorage.setItem("zennova_checkout_last_name", customerLastName);
+    localStorage.setItem("zennova_checkout_email", customerEmail);
+
+    setPaymentMethod(null);
+    setStep("payment");
+  };
+
+  const handlePlaceOrder = async (method: "cod" | "payu") => {
+    setSubmitting(true);
+    setError(null);
+
+    try {
+      const items = cart.map((item) => {
+        if (isBundleItem(item)) {
+          return {
+            type: "BUNDLE" as const,
+            bundleId: item.bundleId,
+            productIds: item.productIds,
+          };
+        }
+        return {
+          type: "PRODUCT" as const,
+          id: item.productId,
+          quantity: item.quantity,
+        };
+      });
+
+      const fullAddress = `${selectedAddress.flatHouse}, ${selectedAddress.areaStreet}`;
       
-      // Clear cart
-      const res = await fetch("/ajax/cart-content?clear=true");
-      await res.json();
-      
-      // Update global badges
+      const payload = {
+        items,
+        customer: {
+          firstName: customerFirstName,
+          lastName: customerLastName,
+          email: customerEmail,
+          phone,
+          address: fullAddress,
+          city: selectedAddress.city,
+          state: selectedAddress.state,
+          zipCode: selectedAddress.pincode,
+          paymentMethod: method,
+        },
+        paymentMethod: method,
+      };
+
+      const result = await createStoreOrder(payload);
+
+      if (!result.success) {
+        throw new Error(result.message || "Failed to create order");
+      }
+
+      if (method === "payu") {
+        if (result.url) {
+          window.location.href = result.url;
+          return;
+        }
+
+        const productinfo = cart.map(item => item.type === "PRODUCT" ? item.name : item.title).join(", ").slice(0, 100) || "Store Purchase";
+        const payuResult = await initiatePayUPayment({
+          orderId: result.orderId,
+          amount: total,
+          firstName: customerFirstName,
+          email: customerEmail,
+          phone,
+          productinfo
+        });
+
+        if (payuResult.success && payuResult.data) {
+          setPayUData(payuResult.data);
+          return;
+        } else {
+          throw new Error(payuResult.message || "Failed to initiate online payment");
+        }
+      }
+
+      // COD Path: order is immediately placed and confirmed
+      clearCart();
+
       const cartBadges = document.querySelectorAll('[data-bb-value="cart-count"]');
       cartBadges.forEach((badge) => {
         badge.textContent = "0";
       });
 
-      // Dispatch event to refresh header mini cart
       document.dispatchEvent(new CustomEvent("ecommerce.cart.removed", {
         detail: { data: { count: 0 } }
       }));
 
-      setPlaced(true);
-    } catch (err) {
-      alert("Something went wrong processing your order.");
+      setPlacedOrderId(result.orderId || "ZN-" + Math.floor(100000 + Math.random() * 900000));
+      setStep("success");
+    } catch (err: any) {
+      setError(err.message || "Could not place order. Please try again.");
     } finally {
       setSubmitting(false);
     }
   };
 
-  if (loading) {
+  if (cart.length === 0 && step !== "success") {
     return (
-      <main className="bg-dark text-white min-vh-100 d-flex align-items-center justify-content-center">
-        <div className="spinner-border text-warning" role="status">
-          <span className="visually-hidden">Loading...</span>
+      <main className="checkout">
+        <h1 className="checkout__title">Checkout</h1>
+        <div className="checkout__empty">
+          <ShoppingBagIcon size={64} className="checkout__empty-icon" />
+          <h2>Your cart is empty</h2>
+          <p>Add some supplements to your cart to get started.</p>
+          <Link href="/products" className="checkout__empty-btn" style={{ textDecoration: "none" }}>
+            Browse Supplements
+          </Link>
         </div>
       </main>
     );
   }
 
-  if (placed) {
-    return (
-      <main className="bg-dark text-white min-vh-100 py-5">
-        <div className="container py-5 text-center">
-          <div className="bg-dark p-5 rounded border border-secondary d-inline-block" style={{ maxWidth: "600px", borderColor: "#333 !important" }}>
-            <span style={{ fontSize: "64px" }}>🎉</span>
-            <h2 className="text-warning mt-4 mb-3">Order Placed Successfully!</h2>
-            <p className="text-white-50 mb-4" style={{ fontSize: "16px", lineHeight: "1.6" }}>
-              Thank you for shopping with ZenNova. Your order has been placed successfully and is currently being processed. You will receive an email confirmation shortly.
-            </p>
-            <a href="/products" className="tp-btn bg-warning border-0 py-3 px-5 text-white font-weight-bold hover-dark-btn rounded">
-              Continue Shopping
-            </a>
-          </div>
-        </div>
-      </main>
-    );
-  }
-
-  if (!cart || cart.items.length === 0) {
-    return (
-      <main className="bg-dark text-white min-vh-100 py-5">
-        <div className="container py-5 text-center">
-          <div className="bg-dark p-5 rounded border border-secondary d-inline-block" style={{ maxWidth: "500px", borderColor: "#333 !important" }}>
-            <span style={{ fontSize: "64px" }}>🛒</span>
-            <h2 className="text-warning mt-4 mb-3">Your Cart is Empty</h2>
-            <p className="text-white-50 mb-4" style={{ fontSize: "16px" }}>
-              Please add some premium wellness supplements to your cart before proceeding to checkout.
-            </p>
-            <a href="/products" className="tp-btn bg-warning border-0 py-3 px-5 text-white font-weight-bold hover-dark-btn rounded">
-              Shop Now
-            </a>
-          </div>
-        </div>
-      </main>
-    );
-  }
-
-  const shippingCost = 150;
-  const grandTotal = cart.subtotal + shippingCost;
+  const isStepActive = (s: Step) => {
+    const order: Step[] = ["identify", "verify", "details", "payment", "success"];
+    return order.indexOf(step) >= order.indexOf(s);
+  };
 
   return (
-    <main className="bg-dark text-white min-vh-100 pb-5">
-      {/* Breadcrumb */}
-      <section className="breadcrumb__area pt-80 pb-80" style={{ backgroundColor: "#000", borderBottom: "1px solid #111" }}>
-        <div className="container">
-          <div className="row">
-            <div className="col-xxl-12">
-              <div className="breadcrumb__content text-center">
-                <h2 className="breadcrumb__title text-white">Checkout</h2>
-                <div className="breadcrumb__list text-white">
-                  <span><a href="/" className="text-white">Home</a></span>
-                  <span className="dvdr">/</span>
-                  <span className="text-white-50">Checkout</span>
+    <main className="checkout">
+      <h1 className="checkout__title">CHECKOUT</h1>
+
+      <div className="checkout__steps">
+        <div className={`checkout__step ${isStepActive("identify") ? "active" : ""}`}>
+          <span className="checkout__step-num">1</span>
+          <span className="checkout__step-label">Login</span>
+        </div>
+        <div className={`checkout__step-line ${isStepActive("details") ? "active" : isStepActive("identify") ? "half-active" : ""}`} />
+        <div className={`checkout__step ${isStepActive("details") ? "active" : ""}`}>
+          <span className="checkout__step-num">2</span>
+          <span className="checkout__step-label">Details</span>
+        </div>
+        <div className={`checkout__step-line ${isStepActive("payment") ? "active" : isStepActive("details") ? "half-active" : ""}`} />
+        <div className={`checkout__step ${isStepActive("payment") ? "active" : ""}`}>
+          <span className="checkout__step-num">3</span>
+          <span className="checkout__step-label">Payment</span>
+        </div>
+      </div>
+
+      <div className="checkout__layout">
+        <div className="checkout__form">
+          {step === "success" && (
+            <section className="checkout__section text-center">
+              <CheckCircleIcon size={64} className="checkout__success-icon mb-4" />
+              <h2 className="checkout__success-heading text-white">Order Confirmed!</h2>
+              <p className="checkout__success-order text-warning font-weight-bold">Order #{placedOrderId}</p>
+              <p className="checkout__success-message text-white-50">Your shipment is being packed and will ship to you soon.</p>
+              <div className="checkout__success-delivery text-white">
+                <TruckIcon />
+                <span className="ms-2">Standard Delivery (3-5 business days)</span>
+              </div>
+              <Link href="/products" className="checkout__empty-btn" style={{ textDecoration: "none" }}>
+                CONTINUE SHOPPING
+              </Link>
+            </section>
+          )}
+
+          {step === "identify" && (
+            <section className="checkout__section">
+              <div className="checkout__illustration-container">
+                <ShieldCheckIcon size={64} className="text-warning mb-2" />
+              </div>
+              <h3 className="checkout__verification-title text-white">Verify Your Phone Number</h3>
+              <p className="checkout__verification-desc text-white-50">
+                Secure checkout requires phone verification.<br />
+                We will send a one-time OTP to your mobile.
+              </p>
+
+              <div className="checkout__verification-badges">
+                <div className="checkout__badge-item">
+                  <div className="checkout__badge-icon-wrapper">
+                    <ShieldCheckIcon size={16} />
+                  </div>
+                  <div className="checkout__badge-text">
+                    <span>Secure</span>
+                    <span>Checkout</span>
+                  </div>
+                </div>
+                <div className="checkout__badge-divider" />
+                <div className="checkout__badge-item">
+                  <div className="checkout__badge-icon-wrapper">
+                    <PhoneCallIcon size={16} />
+                  </div>
+                  <div className="checkout__badge-text">
+                    <span>Updates</span>
+                    <span>Via SMS</span>
+                  </div>
                 </div>
               </div>
-            </div>
-          </div>
-        </div>
-      </section>
 
-      {/* Checkout Content */}
-      <section className="tp-checkout-area pt-80">
-        <div className="container">
-          <div className="row">
-            {/* Form Column */}
-            <div className="col-lg-7">
-              <div className="bg-dark p-5 rounded border border-secondary mb-4" style={{ borderColor: "#222 !important" }}>
-                <h3 className="text-white mb-4" style={{ fontSize: "22px", borderBottom: "1px solid #222", paddingBottom: "15px" }}>Billing & Shipping Details</h3>
-                <form onSubmit={handleSubmit}>
-                  <div className="row">
-                    <div className="col-md-12 mb-3">
-                      <label className="form-label text-white-50 small">Full Name</label>
-                      <input
-                        type="text"
-                        className="form-control bg-transparent text-white border-secondary py-2"
-                        required
-                        value={form.name}
-                        onChange={(e) => setForm({ ...form, name: e.target.value })}
-                        placeholder="John Doe"
-                      />
-                    </div>
-                    <div className="col-md-6 mb-3">
-                      <label className="form-label text-white-50 small">Email Address</label>
-                      <input
-                        type="email"
-                        className="form-control bg-transparent text-white border-secondary py-2"
-                        required
-                        value={form.email}
-                        onChange={(e) => setForm({ ...form, email: e.target.value })}
-                        placeholder="john@example.com"
-                      />
-                    </div>
-                    <div className="col-md-6 mb-3">
-                      <label className="form-label text-white-50 small">Phone Number</label>
-                      <input
-                        type="tel"
-                        className="form-control bg-transparent text-white border-secondary py-2"
-                        required
-                        value={form.phone}
-                        onChange={(e) => setForm({ ...form, phone: e.target.value })}
-                        placeholder="9876543210"
-                      />
-                    </div>
-                    <div className="col-md-12 mb-3">
-                      <label className="form-label text-white-50 small">Street Address</label>
-                      <input
-                        type="text"
-                        className="form-control bg-transparent text-white border-secondary py-2"
-                        required
-                        value={form.address}
-                        onChange={(e) => setForm({ ...form, address: e.target.value })}
-                        placeholder="House No, Street Name, Locality"
-                      />
-                    </div>
-                    <div className="col-md-6 mb-4">
-                      <label className="form-label text-white-50 small">City</label>
-                      <input
-                        type="text"
-                        className="form-control bg-transparent text-white border-secondary py-2"
-                        required
-                        value={form.city}
-                        onChange={(e) => setForm({ ...form, city: e.target.value })}
-                        placeholder="Mumbai"
-                      />
-                    </div>
-                    <div className="col-md-6 mb-4">
-                      <label className="form-label text-white-50 small">Pincode / ZIP</label>
-                      <input
-                        type="text"
-                        className="form-control bg-transparent text-white border-secondary py-2"
-                        required
-                        value={form.zip}
-                        onChange={(e) => setForm({ ...form, zip: e.target.value })}
-                        placeholder="400001"
-                      />
-                    </div>
-                  </div>
-                  
-                  <button
-                    type="submit"
-                    disabled={submitting}
-                    className="tp-btn bg-warning border-0 w-100 py-3 text-white font-weight-bold hover-dark-btn rounded d-flex align-items-center justify-content-center gap-2"
-                    style={{ fontSize: "16px" }}
-                  >
-                    {submitting ? (
-                      <>
-                        <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
-                        Processing...
-                      </>
-                    ) : (
-                      "Place Cash on Delivery Order"
-                    )}
+              <div className="checkout__phone-input-container">
+                <div className="checkout__country-selector">
+                  <IndiaFlag />
+                  <span className="checkout__country-code text-white ms-2">+91</span>
+                  <ChevronDownIcon size={14} className="checkout__caret ms-1" />
+                </div>
+                <div className="checkout__phone-divider" />
+                <input
+                  type="tel"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value.replace(/\D/g, "").slice(0, 10))}
+                  placeholder="9876543210"
+                  maxLength={10}
+                  className="checkout__phone-field"
+                  disabled={otpLoading}
+                />
+              </div>
+              {error && <p className="checkout__error mb-3">{error}</p>}
+
+              <button className="checkout__send-otp-btn" onClick={handleSendOtp} disabled={otpLoading}>
+                {otpLoading ? <LoaderIcon className="animate-spin" /> : <>SEND OTP <ArrowRightIcon size={18} /></>}
+              </button>
+            </section>
+          )}
+
+          {step === "verify" && (
+            <section className="checkout__section">
+              <div className="checkout__illustration-container">
+                <LockIcon size={64} className="text-warning mb-2" />
+              </div>
+              <h3 className="checkout__verification-title text-white">Enter Verification Code</h3>
+              <p className="checkout__verification-desc text-white-50">
+                We sent a 4-digit code to +91 {phone}.<br />
+                Please check your messages and enter the code below.
+              </p>
+
+              <div className="checkout__otp-inputs">
+                {[0, 1, 2, 3].map((index) => (
+                  <input
+                    key={index}
+                    ref={(el) => {
+                      if (el) otpRefs.current[index] = el;
+                    }}
+                    type="text"
+                    inputMode="numeric"
+                    maxLength={1}
+                    value={otp[index] || ""}
+                    onChange={(e) => handleOtpChange(index, e.target.value)}
+                    onKeyDown={(e) => handleOtpKeyDown(index, e)}
+                    className="checkout__otp-digit"
+                    disabled={otpLoading}
+                  />
+                ))}
+              </div>
+              {error && <p className="checkout__error text-center mt-3">{error}</p>}
+
+              <div className="text-center mt-3 mb-4">
+                <button className="checkout__resend" onClick={handleSendOtp} disabled={resendTimer > 0 || otpLoading}>
+                  {resendTimer > 0 ? `Resend code in ${resendTimer}s` : "Resend code"}
+                </button>
+              </div>
+
+              <button className="checkout__send-otp-btn" onClick={handleVerifyOtp} disabled={otpLoading || otp.join("").length !== 4}>
+                {otpLoading ? <LoaderIcon className="animate-spin" /> : <>VERIFY & CONTINUE <ArrowRightIcon size={18} /></>}
+              </button>
+            </section>
+          )}
+
+          {step === "details" && (
+            <section className="checkout__section">
+              <div className="checkout__step-header">
+                <h2>YOUR DETAILS</h2>
+                <span className="checkout__verified-badge">✓ Verified</span>
+              </div>
+              <p className="checkout__step-desc">Provide your contact details and shipping address</p>
+
+              <div className="checkout__row">
+                <div className="checkout__field">
+                  <label>First Name *</label>
+                  <input
+                    type="text"
+                    value={customerFirstName}
+                    onChange={(e) => {
+                      setCustomerFirstName(e.target.value.replace(/[^a-zA-Z\s]/g, ""));
+                      setFieldErrors((prev) => ({ ...prev, firstName: "" }));
+                    }}
+                    className={fieldErrors.firstName ? "error" : ""}
+                    placeholder="John"
+                  />
+                  {fieldErrors.firstName && <span className="checkout__error">{fieldErrors.firstName}</span>}
+                </div>
+                <div className="checkout__field">
+                  <label>Last Name</label>
+                  <input
+                    type="text"
+                    value={customerLastName}
+                    onChange={(e) => setCustomerLastName(e.target.value.replace(/[^a-zA-Z\s]/g, ""))}
+                    placeholder="Doe"
+                  />
+                </div>
+              </div>
+
+              <div className="checkout__field">
+                <label>Email Address *</label>
+                <input
+                  type="email"
+                  value={customerEmail}
+                  onChange={(e) => {
+                    setCustomerEmail(e.target.value);
+                    setFieldErrors((prev) => ({ ...prev, email: "" }));
+                  }}
+                  className={fieldErrors.email ? "error" : ""}
+                  placeholder="john@example.com"
+                />
+                {fieldErrors.email && <span className="checkout__error">{fieldErrors.email}</span>}
+              </div>
+
+              <div className="checkout__address-section">
+                <h3 className="checkout__address-title">DELIVERY ADDRESS</h3>
+
+                {!showAddressForm && (
+                  <button className="checkout__add-address-btn" onClick={() => setShowAddressForm(true)}>
+                    + Add New Address
                   </button>
-                </form>
-              </div>
-            </div>
+                )}
 
-            {/* Summary Column */}
-            <div className="col-lg-5">
-              <div className="bg-dark p-5 rounded border border-secondary" style={{ borderColor: "#222 !important", position: "sticky", top: "100px" }}>
-                <h3 className="text-white mb-4" style={{ fontSize: "22px", borderBottom: "1px solid #222", paddingBottom: "15px" }}>Your Order</h3>
-                
-                <div className="mb-4" style={{ maxHeight: "300px", overflowY: "auto", paddingRight: "10px" }}>
-                  {cart.items.map((item) => (
-                    <div className="d-flex justify-content-between align-items-center mb-3" key={item.product.id}>
-                      <div className="d-flex align-items-center gap-3">
-                        <img src={item.product.images?.[0] || "/storage/logot.webp"} alt={item.product.name} style={{ width: "50px", height: "50px", objectFit: "contain", backgroundColor: "#111", borderRadius: "4px" }} />
-                        <div>
-                          <h4 className="text-white mb-0" style={{ fontSize: "14px", fontWeight: "normal" }}>{item.product.name}</h4>
-                          <span className="text-white-50 small">Qty: {item.quantity}</span>
-                        </div>
-                      </div>
-                      <span className="text-warning font-weight-bold">₹{item.subtotal.toLocaleString("en-IN")}</span>
+                {showAddressForm && (
+                  <div className="checkout__address-form">
+                    <div className="checkout__address-type-btns">
+                      {["HOME", "WORK", "OTHER"].map((type) => (
+                        <button
+                          key={type}
+                          type="button"
+                          onClick={() => setAddressForm({ ...addressForm, type })}
+                          className={`checkout__address-type-btn ${addressForm.type === type ? "active" : ""}`}
+                        >
+                          {type}
+                        </button>
+                      ))}
                     </div>
-                  ))}
-                </div>
 
-                <div className="border-top border-secondary pt-3 mt-3">
-                  <div className="d-flex justify-content-between text-white-50 mb-2">
-                    <span>Subtotal</span>
-                    <span className="text-white">₹{cart.subtotal.toLocaleString("en-IN")}</span>
+                    <div className="checkout__field">
+                      <label>House/Flat/Building *</label>
+                      <input
+                        type="text"
+                        value={addressForm.flatHouse}
+                        onChange={(e) => setAddressForm({ ...addressForm, flatHouse: e.target.value })}
+                        placeholder="Flat 101, building A"
+                      />
+                    </div>
+
+                    <div className="checkout__field">
+                      <label>Street/Area/Landmark *</label>
+                      <input
+                        type="text"
+                        value={addressForm.areaStreet}
+                        onChange={(e) => setAddressForm({ ...addressForm, areaStreet: e.target.value })}
+                        placeholder="Linking Road, near post office"
+                      />
+                    </div>
+
+                    <div className="checkout__row checkout__row--3">
+                      <div className="checkout__field">
+                        <label>City *</label>
+                        <input
+                          type="text"
+                          value={addressForm.city}
+                          onChange={(e) => setAddressForm({ ...addressForm, city: e.target.value.replace(/[^a-zA-Z\s]/g, "") })}
+                          placeholder="Mumbai"
+                        />
+                      </div>
+                      <div className="checkout__field">
+                        <label>State *</label>
+                        <select
+                          value={addressForm.state}
+                          onChange={(e) => setAddressForm({ ...addressForm, state: e.target.value })}
+                        >
+                          <option value="">Select State</option>
+                          {indianStates.map((s) => (
+                            <option key={s} value={s}>{s}</option>
+                          ))}
+                        </select>
+                      </div>
+                      <div className="checkout__field">
+                        <label>PIN Code *</label>
+                        <input
+                          type="text"
+                          value={addressForm.pincode}
+                          onChange={(e) => setAddressForm({ ...addressForm, pincode: e.target.value.replace(/\D/g, "").slice(0, 6) })}
+                          maxLength={6}
+                          placeholder="400001"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="checkout__address-form-actions">
+                      <button type="button" className="checkout__btn-secondary" onClick={() => setShowAddressForm(false)}>
+                        Cancel
+                      </button>
+                      <button type="button" className="checkout__btn-primary" onClick={handleSaveAddress}>
+                        Save Address
+                      </button>
+                    </div>
                   </div>
-                  <div className="d-flex justify-content-between text-white-50 mb-2">
-                    <span>Shipping Charges</span>
-                    <span className="text-white">₹{shippingCost}</span>
+                )}
+
+                {savedAddresses.length > 0 && (
+                  <div className="checkout__saved-addresses">
+                    {savedAddresses.map((addr) => (
+                      <div
+                        key={addr.id}
+                        className={`checkout__address-card ${selectedAddress?.id === addr.id ? "selected" : ""}`}
+                        onClick={() => {
+                          setSelectedAddress(addr);
+                          setShowAddressForm(false);
+                        }}
+                      >
+                        <div className="checkout__address-card-header">
+                          <span className="checkout__address-type">{addr.type}</span>
+                          {addr.isDefault && <span className="checkout__address-default">Default</span>}
+                          {selectedAddress?.id === addr.id && <CheckCircleIcon size={14} className="checkout__address-check" />}
+                        </div>
+                        <p className="checkout__address-detail font-weight-bold text-white">{addr.flatHouse}</p>
+                        <p className="checkout__address-detail text-white-50">{addr.areaStreet}</p>
+                        <p className="checkout__address-detail text-white-50">{addr.city}, {addr.state} - {addr.pincode}</p>
+                      </div>
+                    ))}
                   </div>
-                  <div className="d-flex justify-content-between border-top border-secondary pt-3 mt-3" style={{ fontSize: "18px", fontWeight: "bold" }}>
-                    <span>Total Amount</span>
-                    <span className="text-warning">₹{grandTotal.toLocaleString("en-IN")}</span>
+                )}
+              </div>
+
+              {error && <p className="checkout__error mt-3">{error}</p>}
+
+              <button
+                type="button"
+                className="checkout__send-otp-btn mt-4"
+                onClick={handleContinueToPayment}
+                disabled={!selectedAddress}
+              >
+                CONTINUE TO PAYMENT <ChevronRightIcon size={18} />
+              </button>
+            </section>
+          )}
+
+          {step === "payment" && (
+            <>
+              {/* Delivery summary capsule */}
+              <div className="checkout__delivery-capsule">
+                <div className="checkout__delivery-capsule-header">
+                  <span className="checkout__delivery-capsule-title">Delivery Details</span>
+                  <button type="button" className="checkout__delivery-capsule-change" onClick={() => setStep("details")}>
+                    Change
+                  </button>
+                </div>
+                <div className="checkout__delivery-capsule-content">
+                  <div className="checkout__delivery-capsule-name-row">
+                    <span className="checkout__delivery-capsule-name text-white">
+                      {customerFirstName} {customerLastName}
+                    </span>
+                    <span className="checkout__delivery-capsule-tag">
+                      {selectedAddress.type}
+                    </span>
+                  </div>
+                  <p className="checkout__delivery-capsule-address">
+                    {selectedAddress.flatHouse}, {selectedAddress.areaStreet}
+                  </p>
+                  <p className="checkout__delivery-capsule-pincode">
+                    {selectedAddress.city}, {selectedAddress.state} - {selectedAddress.pincode}
+                  </p>
+                  <div className="checkout__delivery-capsule-phone text-white">
+                    <PhoneIcon />
+                    <span className="ms-2">+91 {phone}</span>
                   </div>
                 </div>
               </div>
+
+              <section className="checkout__section">
+                <div className="checkout__step-header">
+                  <h2>PAYMENT METHOD</h2>
+                </div>
+                <p className="checkout__step-desc">Select how you want to pay</p>
+
+                {paymentMethod === null && (
+                  <div className="checkout__payment-options">
+                    <div className="checkout__payment-card" onClick={() => setPaymentMethod("cod")}>
+                      <div className="checkout__payment-header">
+                        <div className="checkout__payment-info-left">
+                          <div className="checkout__payment-icon">
+                            <BanknoteIcon size={24} />
+                          </div>
+                          <div>
+                            <p className="checkout__payment-title text-white">Cash on Delivery (COD)</p>
+                            <p className="checkout__payment-note text-white-50">+ ₹{codFee} COD handling fee</p>
+                          </div>
+                        </div>
+                        <button className="checkout__payment-select-btn" type="button">
+                          Select <ChevronRightIcon size={16} />
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="checkout__payment-card" onClick={() => setPaymentMethod("payu")}>
+                      <div className="checkout__payment-header">
+                        <div className="checkout__payment-info-left">
+                          <div className="checkout__payment-icon">
+                            <CreditCardIcon size={24} />
+                          </div>
+                          <div>
+                            <p className="checkout__payment-title text-white">Online Payment</p>
+                            <p className="checkout__payment-note text-white-50">Cards, UPI, Netbanking, PayU</p>
+                          </div>
+                        </div>
+                        <button className="checkout__payment-select-btn" type="button">
+                          Select <ChevronRightIcon size={16} />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {paymentMethod === "cod" && (
+                  <div className="checkout__payment-inline-wrapper">
+                    <div className="checkout__payment-confirm">
+                      <div className="checkout__cod-info text-white-50">
+                        <p>Pay with cash upon delivery of your items.</p>
+                        <p className="checkout__cod-fee">A handling fee of <span className="text-warning">₹{codFee}</span> applies.</p>
+                      </div>
+                      {error && <p className="checkout__error">{error}</p>}
+                      <div className="checkout__payment-actions">
+                        <button type="button" className="checkout__btn-secondary" onClick={() => setPaymentMethod(null)}>
+                          Change Method
+                        </button>
+                        <button
+                          type="button"
+                          className="checkout__place-order-btn"
+                          onClick={() => handlePlaceOrder("cod")}
+                          disabled={submitting}
+                        >
+                          {submitting ? (
+                            <LoaderIcon className="animate-spin" />
+                          ) : (
+                            `PLACE ORDER · ₹${formatPrice(total + codFee)}`
+                          )}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {paymentMethod === "payu" && (
+                  <div className="checkout__payment-inline-wrapper">
+                    <div className="checkout__payment-confirm">
+                      <div className="checkout__online-info text-white-50">
+                        <p>Pay securely via standard gateway integrations.</p>
+                        <p className="checkout__secure-badge">🔒 256-bit SSL Secure Payment</p>
+                      </div>
+                      {error && <p className="checkout__error">{error}</p>}
+                      <div className="checkout__payment-actions">
+                        <button type="button" className="checkout__btn-secondary" onClick={() => setPaymentMethod(null)}>
+                          Change Method
+                        </button>
+                        <button
+                          type="button"
+                          className="checkout__place-order-btn checkout__place-order-btn--online"
+                          onClick={() => handlePlaceOrder("payu")}
+                          disabled={submitting}
+                        >
+                          {submitting ? (
+                            <LoaderIcon className="animate-spin" />
+                          ) : (
+                            `PAY NOW · ₹${formatPrice(total)}`
+                          )}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </section>
+            </>
+          )}
+        </div>
+
+        {/* Sidebar Order Summary Panel */}
+        <aside className="checkout__summary-panel">
+          <h3 className="checkout__summary-title text-white">Order Summary</h3>
+          
+          <div className="checkout__summary-items">
+            {cart.map((item, index) => {
+              const image = isBundleItem(item)
+                ? "/storage/logot.webp"
+                : item.images?.[0] || "/storage/logot.webp";
+              
+              const title = isBundleItem(item) ? item.title : item.name;
+              const priceVal = isBundleItem(item) ? item.payable : Number(item.price) * item.quantity;
+              
+              return (
+                <div key={index} className="checkout__summary-item">
+                  <div className="checkout__summary-item-left">
+                    <img src={image} alt={title} className="checkout__summary-img" />
+                    <div>
+                      <h4 className="checkout__summary-name text-white">{title}</h4>
+                      {!isBundleItem(item) && (
+                        <span className="checkout__summary-qty">Qty: {item.quantity}</span>
+                      )}
+                    </div>
+                  </div>
+                  <span className="checkout__summary-price">₹{formatPrice(priceVal)}</span>
+                </div>
+              );
+            })}
+          </div>
+
+          <div className="checkout__summary-totals">
+            <div className="checkout__summary-row">
+              <span>Subtotal</span>
+              <span className="text-white">₹{formatPrice(subtotal)}</span>
+            </div>
+            
+            {paymentMethod === "cod" && (
+              <div className="checkout__summary-row">
+                <span>COD Surcharge</span>
+                <span className="text-white">₹{codFee}</span>
+              </div>
+            )}
+            
+            <div className="checkout__summary-row checkout__summary-row--total">
+              <span>Total</span>
+              <span>₹{formatPrice(paymentMethod === "cod" ? total + codFee : total)}</span>
             </div>
           </div>
-        </div>
-      </section>
+        </aside>
+      </div>
     </main>
   );
 }

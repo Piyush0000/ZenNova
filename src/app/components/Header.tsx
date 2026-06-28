@@ -268,25 +268,51 @@ export default async function Header() {
                       </div>
                     ) : (
                       <div className="cartmini__widget">
-                        {cartDetails.items.map((item) => {
-                          const imgUrl = item.product.images?.[0] || "/storage/logot.webp";
+                         {cartDetails.items.map((item, index) => {
+                          if (item.type === "BUNDLE") {
+                            return (
+                              <div className="cartmini__widget-item" key={`bundle-${item.bundleId}-${index}`}>
+                                <div className="cartmini__content" style={{ paddingLeft: 0 }}>
+                                  <span className="zn-cart-page__badge" style={{ background: "#f37324", color: "#fff", padding: "2px 6px", fontSize: "10px", borderRadius: "4px", fontWeight: "bold", textTransform: "uppercase" }}>Combo Offer</span>
+                                  <h5 className="cartmini__title mt-10">
+                                    <a href="/bundle">{item.title}</a>
+                                  </h5>
+                                  <p style={{ fontSize: "12px", color: "#aaa", margin: "4px 0" }}>{(item.items || []).map((p: any) => p.name).join(" · ")}</p>
+                                  <div className="cartmini__price-wrapper">
+                                    <span className="cartmini__price">₹{parseFloat(item.payable as any).toLocaleString("en-IN")}</span>
+                                    {item.subtotal > item.payable && (
+                                      <del style={{ fontSize: "12px", color: "#666", marginLeft: "8px" }}>₹{parseFloat(item.subtotal as any).toLocaleString("en-IN")}</del>
+                                    )}
+                                  </div>
+                                </div>
+                                <a href={`/ajax/cart-content?remove_index=${index}`} className="cartmini__del" data-bb-toggle="remove-from-cart">
+                                  <svg className="icon svg-icon-ti-ti-x" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                                  </svg>
+                                </a>
+                              </div>
+                            );
+                          }
+
+                          const imgUrl = item.product?.images?.[0] || "/storage/logot.webp";
                           return (
-                            <div className="cartmini__widget-item" key={item.product.id}>
+                            <div className="cartmini__widget-item" key={item.product?.id || `product-${index}`}>
                               <div className="cartmini__thumb">
-                                <a href={`/products/${item.product.slug}`}>
-                                  <img src={imgUrl} alt={item.product.name} />
+                                <a href={`/products/${item.product?.slug}`}>
+                                  <img src={imgUrl} alt={item.product?.name || ""} />
                                 </a>
                               </div>
                               <div className="cartmini__content">
                                 <h5 className="cartmini__title">
-                                  <a href={`/products/${item.product.slug}`}>{item.product.name}</a>
+                                  <a href={`/products/${item.product?.slug}`}>{item.product?.name || ""}</a>
                                 </h5>
                                 <div className="cartmini__price-wrapper">
-                                  <span className="cartmini__price">₹{parseFloat(item.product.price).toLocaleString("en-IN")}</span>
+                                  <span className="cartmini__price">₹{parseFloat(item.product?.price || "0").toLocaleString("en-IN")}</span>
                                 </div>
                                 <div className="cartmini__quantity mt-10 mb-10">
                                   <form action="/ajax/cart-content" method="POST">
-                                    <input type="hidden" name="id" value={item.product.id} />
+                                    <input type="hidden" name="id" value={item.product?.id || ""} />
                                     <input type="hidden" name="cart_action" value="update" />
                                     <div className="tp-product-quantity">
                                       <span className="tp-cart-minus" data-bb-toggle="decrease-qty">-</span>
@@ -296,8 +322,8 @@ export default async function Header() {
                                   </form>
                                 </div>
                               </div>
-                              <a href={`/ajax/cart-content?remove=${item.product.id}`} className="cartmini__del" data-bb-toggle="remove-from-cart">
-                                <svg className="icon svg-icon-ti-ti-x" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                              <a href={`/ajax/cart-content?remove_index=${index}`} className="cartmini__del" data-bb-toggle="remove-from-cart">
+                                <svg className="icon svg-icon-ti-ti-x" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                                   <line x1="18" y1="6" x2="6" y2="18"></line>
                                   <line x1="6" y1="6" x2="18" y2="18"></line>
                                 </svg>
