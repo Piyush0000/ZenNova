@@ -274,6 +274,37 @@ export default function HomeClient({ products, storeData }: Props) {
                     height: 8px;
                 }
             }
+            .zn-combo-banner-scroll-wrapper {
+                width: 100%;
+                overflow: hidden;
+            }
+            .zn-combo-banner-img {
+                width: 100%;
+                height: auto;
+                display: block;
+                border-radius: 8px;
+                transition: transform 0.3s ease;
+            }
+            .tp-banner-item:hover .zn-combo-banner-img {
+                transform: scale(1.02);
+            }
+            @media (max-width: 767px) {
+                .zn-combo-banner-scroll-wrapper {
+                    overflow-x: auto;
+                    -webkit-overflow-scrolling: touch;
+                    display: block;
+                    width: 100%;
+                }
+                .zn-combo-banner-scroll-wrapper::-webkit-scrollbar {
+                    display: none;
+                }
+                .zn-combo-banner-img {
+                    width: auto;
+                    height: 150px;
+                    max-width: none;
+                    min-width: 580px;
+                }
+            }
             @media (min-width: 992px) {
                 .zn-testimonial-area .container {
                     max-width: 960px !important;
@@ -526,45 +557,16 @@ export default function HomeClient({ products, storeData }: Props) {
           <div className="container">
             <div className="row">
               <div className="col-12">
-                <div className="tp-banner-item tp-banner-height p-relative mb-30 z-index-1 fix">
-                  <div className="tp-banner-thumb include-bg transition-3">
-                    <a href={detoxBannerHref}>
+                <div className="tp-banner-item tp-banner-height p-relative mb-30 z-index-1 fix" style={{ padding: 0, minHeight: "auto" }}>
+                  <div className="zn-combo-banner-scroll-wrapper">
+                    <a href={detoxBannerHref} className="w-100 d-block">
                       <img
-                        src={banners[1]?.image}
-                        alt={banners[1]?.title || "Bundle offer"}
-                        style={{ width: "100%", height: "auto" }}
+                        src="/storage/comboimag.png"
+                        alt="Create Your Own Combo Offer"
+                        className="zn-combo-banner-img"
                         loading="lazy"
                       />
                     </a>
-                  </div>
-                  <div className="tp-banner-content">
-                    <div className="tp-banner-btn">
-                      <a href={detoxBannerHref} className="tp-link-btn">
-                        {banners[1]?.buttonText || "Shop Now"}
-                        <svg
-                          width="15"
-                          height="13"
-                          viewBox="0 0 15 13"
-                          fill="none"
-                          xmlns="http://www.w3.org/2000/svg"
-                        >
-                          <path
-                            d="M13.9998 6.19656L1 6.19656"
-                            stroke="currentColor"
-                            strokeWidth="1.5"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                          />
-                          <path
-                            d="M8.75674 0.975394L14 6.19613L8.75674 11.4177"
-                            stroke="currentColor"
-                            strokeWidth="1.5"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                          />
-                        </svg>
-                      </a>
-                    </div>
                   </div>
                   <div className="zn-create-combo-btn-wrapper">
                     <a href={detoxBannerHref} className="zn-create-combo-btn">

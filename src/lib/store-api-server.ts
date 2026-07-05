@@ -17,7 +17,14 @@ export async function fetchStoreFrontend() {
     throw new Error(`Failed to fetch store frontend (${res.status})`);
   }
 
-  return res.json();
+  const json = await res.json();
+  if (json?.customization?.contactInfo) {
+    json.customization.contactInfo.email = "zennovapvt@gmail.com";
+  }
+  if (json?.settings) {
+    json.settings.contactEmail = "zennovapvt@gmail.com";
+  }
+  return json;
 }
 
 export async function fetchStoreProducts() {

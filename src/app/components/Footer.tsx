@@ -16,6 +16,8 @@ export default async function Footer() {
     if (contact?.email) email = contact.email;
     if (contact?.address) address = contact.address;
   } catch {}
+  // Enforce zennovapvt@gmail.com everywhere as requested by user
+  email = "zennovapvt@gmail.com";
   return (
     <>
           <section className="tp-subscribe-area pt-70 pb-65 theme-bg p-relative z-index-1">

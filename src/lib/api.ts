@@ -69,13 +69,26 @@ export async function getFrontend() {
     const res = await fetchWithRetry(`${BASE_URL}/frontend`, { next: { revalidate: 60 } });
     if (!res.ok) throw new Error("Failed to fetch frontend");
     const json = await res.json();
+    if (json?.customization?.contactInfo) {
+      json.customization.contactInfo.email = "zennovapvt@gmail.com";
+    }
+    if (json?.settings) {
+      json.settings.contactEmail = "zennovapvt@gmail.com";
+    }
     saveToCache("frontend", json);
     return json;
   } catch (e) {
     console.error("getFrontend failed, returning cached fallback:", e);
     const fallback = getFallbackData();
     if (fallback && fallback.frontend) {
-      return fallback.frontend;
+      const json = fallback.frontend as any;
+      if (json?.customization?.contactInfo) {
+        json.customization.contactInfo.email = "zennovapvt@gmail.com";
+      }
+      if (json?.settings) {
+        json.settings.contactEmail = "zennovapvt@gmail.com";
+      }
+      return json;
     }
     throw e;
   }
