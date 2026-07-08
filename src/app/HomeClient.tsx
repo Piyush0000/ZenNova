@@ -463,7 +463,7 @@ export default function HomeClient({ products, storeData }: Props) {
               <div className="col-12">
                 <div className="tp-section-title-wrapper">
                   <h3 className="section-title tp-section-title">
-                    <span>All</span> Supplements
+                    <span>All</span> Products
                   </h3>
                 </div>
               </div>

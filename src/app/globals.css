@@ -1241,6 +1241,8 @@ body.zn-bundle-route .js-sale-popup-container {
   display: block;
   height: auto;
   width: 100%;
+  max-width: 800px;
+  margin: 0 auto;
 }
 
 .zn-bundle-offer-page__grid-section {
@@ -4618,7 +4620,19 @@ body.zn-bundle-route .js-sale-popup-container {
   }
 }
 
-/* Powered by EvocLabs link hover style */
-.evoclabs-powered-by a:hover {
+/* Powered by EvocLabs link style */
+.evoclabs-powered-by a,
+.evoclabs-powered-by a span {
+  color: #00A3FF !important;
+}
+
+.evoclabs-powered-by a:hover,
+.evoclabs-powered-by a:hover span {
   color: #ffffff !important;
+}
+
+@media (max-width: 991px) {
+  .evoclabs-powered-by {
+    padding-bottom: 85px !important;
+  }
 }

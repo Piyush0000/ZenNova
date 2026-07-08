@@ -377,15 +377,19 @@ export default async function Footer() {
             gap: '8px',
             fontSize: '14px',
             fontWeight: 500,
-            color: 'rgba(255, 255, 255, 0.65)',
+            color: '#00A3FF',
             textDecoration: 'none',
             transition: 'all 0.3s ease'
         }}
         >
-            <span>Powered by</span>
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#00A3FF" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ verticalAlign: 'middle' }}>
-                <path d="M12 19c-3.87 0-7-3.13-7-7s3.13-7 7-7 7 3.13 7 7H5" />
-            </svg>
+            <span style={{ color: '#00A3FF' }}>Powered by</span>
+            <img 
+                src="/storage/final logo-04.png" 
+                alt="e" 
+                width="18" 
+                height="18" 
+                style={{ objectFit: 'contain', verticalAlign: 'middle' }} 
+            />
             <span style={{ fontWeight: 'bold', color: '#00A3FF' }}>EvocLabs</span>
         </a>
     </div>

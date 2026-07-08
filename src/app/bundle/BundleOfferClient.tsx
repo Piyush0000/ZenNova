@@ -39,18 +39,16 @@ export default function BundleOfferClient({ bundle, bannerImage }: Props) {
 
   return (
     <main className="zn-bundle-offer-page">
-      {bannerImage ? (
-        <section className="zn-bundle-offer-page__banner" aria-label="Bundle offer">
-          <div className="container">
-            <img
-              src={bannerImage}
-              alt={bundle.title || "Build your own bundle"}
-              className="zn-bundle-offer-page__banner-img"
-              loading="eager"
-            />
-          </div>
-        </section>
-      ) : null}
+      <section className="zn-bundle-offer-page__banner" aria-label="Bundle offer">
+        <div className="container">
+          <img
+            src="/storage/combobanner.jpeg"
+            alt={bundle.title || "Build your own bundle"}
+            className="zn-bundle-offer-page__banner-img"
+            loading="eager"
+          />
+        </div>
+      </section>
 
       <section className="zn-bundle-offer-page__grid-section">
         <div className="container">

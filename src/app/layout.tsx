@@ -69,7 +69,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           body { font-size: var(--body-size); }
         `}} />
 
-        <link rel="icon" type="image/png" href="/storage/loader.png" />
+        <link rel="icon" type="image/jpeg" href="/storage/favicon.jpeg" />
 
         {/* Fonts */}
         <link rel="preconnect" href="https://fonts.googleapis.com" />
