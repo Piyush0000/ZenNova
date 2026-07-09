@@ -17,4 +17,7 @@ export type Product = {
   isActive: boolean;
   createdAt: string;
   variants: any[];
+  reviewCount?: number;
+  reviews?: any[];
+  averageRating?: number | string | null;
 };

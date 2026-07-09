@@ -19,12 +19,12 @@ export default async function ProductDetails({
   return (
     <main>
       {/* Breadcrumb */}
-      <section className="breadcrumb__area pt-80 pb-80" style={{ backgroundColor: "#000", borderBottom: "1px solid #111" }}>
+      <section className="breadcrumb__area" style={{ backgroundColor: "#000", borderBottom: "1px solid #111", padding: "clamp(30px, 5vw, 60px) 0" }}>
         <div className="container">
           <div className="row">
             <div className="col-xxl-12">
               <div className="breadcrumb__content text-center">
-                <h2 className="breadcrumb__title text-white">{product.name}</h2>
+                <h2 className="breadcrumb__title text-white" style={{ fontSize: "clamp(18px, 3.5vw, 32px)", lineHeight: "1.3", marginBottom: "12px", padding: "0 15px" }}>{product.name}</h2>
                 <div className="breadcrumb__list text-white">
                   <span><a href="/" className="text-white">Home</a></span>
                   <span className="dvdr">/</span>

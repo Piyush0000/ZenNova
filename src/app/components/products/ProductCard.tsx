@@ -92,12 +92,19 @@ export default function ProductCard({
           </a>
         </h3>
 
-        <ProductRating
-          slug={product.slug}
-          reviewCount={reviewCount}
-          ratingPercent={ratingPercent}
-          shopStars={false}
-        />
+        {(() => {
+          const realReviewCount = product.reviewCount ?? (product.reviews ? product.reviews.length : 0);
+          const avgRating = product.averageRating != null ? Number(product.averageRating) : 5;
+          const realRatingPercent = (avgRating / 5) * 100;
+          return (
+            <ProductRating
+              slug={product.slug}
+              reviewCount={realReviewCount}
+              ratingPercent={realRatingPercent}
+              shopStars={false}
+            />
+          );
+        })()}
 
         <div className="tp-product-price-wrapper">
           <span className="tp-product-price new-price" data-bb-value="product-price">
