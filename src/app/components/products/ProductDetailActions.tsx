@@ -10,6 +10,8 @@ type Variant = {
   sku?: string;
   originalPrice?: number | string | null;
   discountedPrice?: number | string | null;
+  price?: number | string | null;
+  compareAtPrice?: number | string | null;
   stock?: number | string;
   isActive?: boolean;
 };
@@ -31,6 +33,11 @@ export default function ProductDetailActions({
   variants = [],
   sku,
 }: Props) {
+  // Console log variants for debugging
+  React.useEffect(() => {
+    console.log("ProductDetailActions mounted with variants payload:", variants);
+  }, [variants]);
+
   // Filter active variants
   const activeVariants = useMemo(() => {
     return (variants || []).filter((v) => v.isActive !== false);
@@ -43,16 +50,16 @@ export default function ProductDetailActions({
 
   const currentPrice = useMemo(() => {
     if (selectedVariant) {
-      const price = selectedVariant.discountedPrice ?? selectedVariant.originalPrice;
-      return price != null ? Number(price) : Number(initialPrice);
+      const price = selectedVariant.discountedPrice ?? selectedVariant.price ?? selectedVariant.originalPrice ?? selectedVariant.compareAtPrice;
+      return price != null && price !== "" ? Number(price) : Number(initialPrice);
     }
     return Number(initialPrice);
   }, [selectedVariant, initialPrice]);
 
   const currentCompareAtPrice = useMemo(() => {
     if (selectedVariant) {
-      const compare = selectedVariant.originalPrice;
-      return compare != null ? Number(compare) : (initialCompareAtPrice ? Number(initialCompareAtPrice) : null);
+      const compare = selectedVariant.compareAtPrice ?? selectedVariant.originalPrice;
+      return compare != null && compare !== "" ? Number(compare) : (initialCompareAtPrice ? Number(initialCompareAtPrice) : null);
     }
     return initialCompareAtPrice ? Number(initialCompareAtPrice) : null;
   }, [selectedVariant, initialCompareAtPrice]);
