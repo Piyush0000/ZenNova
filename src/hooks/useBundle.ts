@@ -34,6 +34,15 @@ export function useBundle(bundle: BundleOffer) {
   const requiredQuantity = bundle.requiredQuantity;
   const bundlePrice = Number(bundle.bundlePrice);
 
+  const isPercentage = useMemo(() => {
+    return bundle.pricingType === "PERCENTAGE" || (bundle.discountPercentage != null && bundle.discountPercentage > 0 && bundle.discountPercentage <= 100);
+  }, [bundle.pricingType, bundle.discountPercentage]);
+
+  const percentVal = useMemo(() => {
+    if (bundle.discountPercentage != null) return Number(bundle.discountPercentage);
+    return isPercentage ? bundlePrice : 0;
+  }, [isPercentage, bundle.discountPercentage, bundlePrice]);
+
   const totalSelected = useMemo(
     () => Object.values(quantities).reduce((sum, qty) => sum + qty, 0),
     [quantities]
@@ -81,18 +90,32 @@ export function useBundle(bundle: BundleOffer) {
   );
 
   const isComplete = totalSelected === requiredQuantity;
-  const bundleSavings = isComplete ? Math.max(0, originalTotal - bundlePrice) : 0;
+
+  const calculatedBundlePrice = useMemo(() => {
+    if (!isComplete) return originalTotal;
+    if (isPercentage) {
+      return Math.round(originalTotal * (1 - percentVal / 100));
+    }
+    return Number(bundle.bundlePrice);
+  }, [isComplete, originalTotal, isPercentage, percentVal, bundle.bundlePrice]);
+
+  const bundleSavings = isComplete
+    ? (isPercentage
+        ? Math.round(originalTotal * (percentVal / 100))
+        : Math.max(0, originalTotal - Number(bundle.bundlePrice)))
+    : 0;
+
   const compareSavings = Math.max(0, compareAtTotal - originalTotal);
   const displaySavings = isComplete ? bundleSavings : compareSavings;
-  const displayPrice = isComplete ? bundlePrice : originalTotal;
+  const displayPrice = calculatedBundlePrice;
   const strikePrice = isComplete
-    ? originalTotal > bundlePrice
+    ? originalTotal > calculatedBundlePrice
       ? originalTotal
       : 0
     : compareAtTotal > originalTotal
       ? compareAtTotal
       : 0;
-  const payable = isComplete ? bundlePrice : 0;
+  const payable = isComplete ? calculatedBundlePrice : 0;
   const remaining = Math.max(0, requiredQuantity - totalSelected);
   const isBundleFull = totalSelected >= requiredQuantity;
 

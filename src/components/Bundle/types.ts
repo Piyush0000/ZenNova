@@ -22,6 +22,8 @@ export type BundleOffer = {
   isActive: boolean;
   startDate?: string | null;
   endDate?: string | null;
+  pricingType?: "PERCENTAGE" | "FIXED";
+  discountPercentage?: number | null;
 };
 
 export type BundleCartItem = {
