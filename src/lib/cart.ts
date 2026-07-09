@@ -45,8 +45,22 @@ export function getCart(cookieStore: any): CartItem[] {
   }
 
   try {
-    const decoded = decodeURIComponent(cookie.value);
-    const parsed = JSON.parse(decoded);
+    const rawValue = cookie.value;
+    let parsed: any = null;
+    
+    // Attempt parsing directly first (Next.js automatically decodes cookies)
+    try {
+      parsed = JSON.parse(rawValue);
+    } catch {
+      // Fallback to decodeURIComponent if it was double-encoded or raw encoded
+      try {
+        const decoded = decodeURIComponent(rawValue);
+        parsed = JSON.parse(decoded);
+      } catch (e) {
+        console.error("Failed to parse cart cookie JSON:", e);
+      }
+    }
+
     if (Array.isArray(parsed)) {
       return parsed.filter(
         (item: any) =>
