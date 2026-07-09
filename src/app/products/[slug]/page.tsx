@@ -3,6 +3,7 @@ import React from "react";
 import { notFound } from "next/navigation";
 import { getProduct } from "@/lib/api";
 import ProductDetailActions from "@/app/components/products/ProductDetailActions";
+import ProductImagesGallery from "@/app/components/products/ProductImagesGallery";
 import { formatPrice } from "@/app/components/products/productUtils";
 
 export default async function ProductDetails({
@@ -44,11 +45,7 @@ export default async function ProductDetails({
             {/* Image Column */}
             <div className="col-xl-6 col-lg-6">
               <div className="tp-product-details-img-wrapper pr-30">
-                <div className="tp-product-details-img-tab">
-                  <div className="tp-product-details-large-img bg-dark rounded overflow-hidden">
-                    <img src={product.images?.[0]} alt={product.name} className="w-100" style={{ maxHeight: "600px", objectFit: "contain" }} />
-                  </div>
-                </div>
+                <ProductImagesGallery images={product.images} name={product.name} />
               </div>
             </div>
 
