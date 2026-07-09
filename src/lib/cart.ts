@@ -102,7 +102,22 @@ export function getCartDetailsFromCart(cart: CartItem[], products: Product[]): C
       continue;
     }
 
-    const product = products.find((p) => p.id === item.productId);
+    // Support variant lookup
+    let product = products.find((p) => p.id === item.productId);
+    let variant: any = null;
+    if (!product) {
+      for (const p of products) {
+        if (Array.isArray(p.variants)) {
+          const v = p.variants.find((v: any) => v.id === item.productId);
+          if (v) {
+            product = p;
+            variant = v;
+            break;
+          }
+        }
+      }
+    }
+
     if (!product || !product.isActive) {
       continue;
     }
@@ -111,17 +126,30 @@ export function getCartDetailsFromCart(cart: CartItem[], products: Product[]): C
       continue;
     }
 
+    // If it's a variant, use variant stock
+    const maxStock = variant ? Number(variant.stock) : product.stock;
     let qty = item.quantity;
-    if (qty > product.stock) {
-      qty = product.stock;
+    if (qty > maxStock) {
+      qty = maxStock;
     }
 
     if (qty > 0) {
-      const priceVal = parseFloat(product.price) || 0;
+      const priceVal = variant 
+        ? (parseFloat(variant.discountedPrice) || parseFloat(variant.originalPrice) || parseFloat(product.price)) 
+        : (parseFloat(product.price) || 0);
       const itemSubtotal = priceVal * qty;
       
+      const displayProduct = {
+        ...product,
+        name: variant ? `${product.name} - ${variant.name}` : product.name,
+        price: String(priceVal),
+        compareAtPrice: variant && variant.originalPrice ? String(variant.originalPrice) : product.compareAtPrice,
+        sku: variant && variant.sku ? variant.sku : product.sku,
+        stock: maxStock,
+      };
+
       items.push({
-        product,
+        product: displayProduct,
         quantity: qty,
         subtotal: itemSubtotal,
       });
@@ -163,7 +191,21 @@ export function addToCartLocal(
     return { success: false, message: "Quantity must be a positive number.", updatedCart: cart };
   }
 
-  const product = products.find((p) => p.id === productId);
+  let product = products.find((p) => p.id === productId);
+  let variant: any = null;
+  if (!product) {
+    for (const p of products) {
+      if (Array.isArray(p.variants)) {
+        const v = p.variants.find((v: any) => v.id === productId);
+        if (v) {
+          product = p;
+          variant = v;
+          break;
+        }
+      }
+    }
+  }
+
   if (!product) {
     return { success: false, message: "Product not found.", updatedCart: cart };
   }
@@ -179,10 +221,11 @@ export function addToCartLocal(
     newQuantity += cart[existingItemIndex].quantity;
   }
 
-  if (newQuantity > product.stock) {
+  const maxStock = variant ? Number(variant.stock) : product.stock;
+  if (newQuantity > maxStock) {
     return {
       success: false,
-      message: `Cannot add more items. Only ${product.stock} items are available in stock.`,
+      message: `Cannot add more items. Only ${maxStock} items are available in stock.`,
       updatedCart: cart,
     };
   }
@@ -194,7 +237,8 @@ export function addToCartLocal(
     updatedCart.push({ productId, quantity: newQuantity });
   }
 
-  return { success: true, message: `Successfully added "${product.name}" to cart.`, updatedCart };
+  const displayName = variant ? `${product.name} (${variant.name})` : product.name;
+  return { success: true, message: `Successfully added "${displayName}" to cart.`, updatedCart };
 }
 
 /**
@@ -212,15 +256,30 @@ export function updateCartQuantityLocal(
     return { success: true, message: "Item removed from cart.", updatedCart };
   }
 
-  const product = products.find((p) => p.id === productId);
+  let product = products.find((p) => p.id === productId);
+  let variant: any = null;
+  if (!product) {
+    for (const p of products) {
+      if (Array.isArray(p.variants)) {
+        const v = p.variants.find((v: any) => v.id === productId);
+        if (v) {
+          product = p;
+          variant = v;
+          break;
+        }
+      }
+    }
+  }
+
   if (!product) {
     return { success: false, message: "Product not found.", updatedCart: cart };
   }
 
-  if (quantity > product.stock) {
+  const maxStock = variant ? Number(variant.stock) : product.stock;
+  if (quantity > maxStock) {
     return {
       success: false,
-      message: `Only ${product.stock} items are available in stock.`,
+      message: `Only ${maxStock} items are available in stock.`,
       updatedCart: cart,
     };
   }

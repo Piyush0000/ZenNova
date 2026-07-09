@@ -72,35 +72,20 @@ export default async function ProductDetails({
                   <span className="text-white-50 ml-10">(5.0 Rating / Verified Customer Reviews)</span>
                 </div>
 
-                {/* Prices */}
-                <div className="tp-product-details-price-wrapper zn-product-details-price mb-20">
-                  <span className="tp-product-details-price new-price">₹{formatPrice(product.price)}</span>
-                  {product.compareAtPrice && (
-                    <span className="tp-product-details-price old-price">
-                      <del>₹{formatPrice(product.compareAtPrice)}</del>
-                    </span>
-                  )}
-                </div>
-
                 {/* Summary */}
                 <div className="tp-product-details-summary mb-30">
                   <p className="text-white-50" style={{ fontSize: "16px", lineHeight: "1.6" }}>{product.description}</p>
                 </div>
 
-                {/* Meta details */}
-                <div className="tp-product-details-meta mb-30" style={{ borderTop: "1px solid #222", borderBottom: "1px solid #222", padding: "15px 0" }}>
-                  <div className="d-flex justify-content-between text-white-50 mb-2">
-                    <span>SKU:</span>
-                    <span className="text-white font-weight-bold">{product.sku}</span>
-                  </div>
-                  <div className="d-flex justify-content-between text-white-50">
-                    <span>Availability:</span>
-                    <span className="text-success font-weight-bold">{product.stock > 0 ? "In Stock" : "Out of Stock"}</span>
-                  </div>
-                </div>
-
-                {/* Actions */}
-                <ProductDetailActions productId={product.id} stock={product.stock} />
+                {/* Interactive pricing, variant options, metadata & actions */}
+                <ProductDetailActions
+                  productId={product.id}
+                  stock={product.stock}
+                  initialPrice={product.price}
+                  initialCompareAtPrice={product.compareAtPrice}
+                  variants={product.variants}
+                  sku={product.sku}
+                />
               </div>
             </div>
           </div>
