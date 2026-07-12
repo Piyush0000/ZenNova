@@ -135,7 +135,7 @@ export function getCartDetailsFromCart(cart: CartItem[], products: Product[]): C
 
     if (qty > 0) {
       const priceVal = variant 
-        ? (parseFloat(variant.discountedPrice) || parseFloat(variant.originalPrice) || parseFloat(product.price)) 
+        ? (parseFloat(variant.price) || parseFloat(variant.discountedPrice) || parseFloat(variant.originalPrice) || parseFloat(product.price) || 0) 
         : (parseFloat(product.price) || 0);
       const itemSubtotal = priceVal * qty;
       
@@ -143,7 +143,7 @@ export function getCartDetailsFromCart(cart: CartItem[], products: Product[]): C
         ...product,
         name: variant ? `${product.name} - ${variant.name}` : product.name,
         price: String(priceVal),
-        compareAtPrice: variant && variant.originalPrice ? String(variant.originalPrice) : product.compareAtPrice,
+        compareAtPrice: variant && (variant.originalPrice || variant.compareAtPrice) ? String(variant.originalPrice || variant.compareAtPrice) : product.compareAtPrice,
         sku: variant && variant.sku ? variant.sku : product.sku,
         stock: maxStock,
       };

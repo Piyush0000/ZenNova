@@ -431,15 +431,15 @@ export default function HomeClient({ products, storeData }: Props) {
           <div className="zn-announcement-bar-content">
             <div className="zn-announcement-bar-item">
               <span>🔥 Create your own combo & get upto 60% off</span>
-              <span>🚚 Buy above ₹ 499 to get ₹100 off</span>
+              <span>🎁 Get upto 40% off</span>
               <span>🔥 Create your own combo & get upto 60% off</span>
-              <span>🚚 Buy above ₹ 499 to get ₹100 off</span>
+              <span>🎁 Get upto 40% off</span>
             </div>
             <div className="zn-announcement-bar-item">
               <span>🔥 Create your own combo & get upto 60% off</span>
-              <span>🚚 Buy above ₹ 499 to get ₹100 off</span>
+              <span>🎁 Get upto 40% off</span>
               <span>🔥 Create your own combo & get upto 60% off</span>
-              <span>🚚 Buy above ₹ 499 to get ₹100 off</span>
+              <span>🎁 Get upto 40% off</span>
             </div>
           </div>
         </div>
